@@ -1,0 +1,196 @@
+{
+  header = {
+    seq = 1, 
+    stamp = {
+      <ros::TimeBase<ros::Time, ros::Duration>> = {
+        sec = 1494473991, 
+        nsec = 355621919
+      }, <No data fields>}, 
+    frame_id = "velodyne"
+  }, 
+  objects = std::vector of length 1, capacity 1 = {{
+      header = {
+        seq = 0, 
+        stamp = {
+          <ros::TimeBase<ros::Time, ros::Duration>> = {
+            sec = 1494473991, 
+            nsec = 355621919
+          }, <No data fields>}, 
+        frame_id = "velodyne"
+      }, 
+      id = 0, 
+      label = "unknown", 
+      score = 1, 
+      color = {
+        r = 0, 
+        g = 0, 
+        b = 0, 
+        a = 0
+      }, 
+      valid = 1 '\001', 
+      space_frame = "velodyne", 
+      pose = {
+        position = {
+          x = 5, 
+          y = -10, 
+          z = 0
+        }, 
+        orientation = {
+          x = 0, 
+          y = 0, 
+          z = 0, 
+          w = 1
+        }
+      }, 
+      dimensions = {
+        x = 16.300000000000001, 
+        y = 4.0599999999999996, 
+        z = 2.3399999999999999
+      }, 
+      variance = {
+        x = 0, 
+        y = 0, 
+        z = 0
+      }, 
+      velocity = {
+        linear = {
+          x = 0, 
+          y = 0, 
+          z = 0
+        }, 
+        angular = {
+          x = 0, 
+          y = 0, 
+          z = 0
+        }
+      }, 
+      acceleration = {
+        linear = {
+          x = 0, 
+          y = 0, 
+          z = 0
+        }, 
+        angular = {
+          x = 0, 
+          y = 0, 
+          z = 0
+        }
+      }, 
+      pointcloud = { ***
+        header = {
+          seq = 0, 
+          stamp = {
+            <ros::TimeBase<ros::Time, ros::Duration>> = {
+              sec = 0, 
+              nsec = 0
+            }, <No data fields>}, 
+          frame_id = "velodyne"
+        }, 
+        height = 1, 
+        width = 125000, 
+        fields = std::vector of length 4, capacity 4 = {{
+            name = "x", 
+            offset = 0, 
+            datatype = 7 '\a', 
+            count = 1
+          }, {
+            name = "y", 
+            offset = 4, 
+            datatype = 7 '\a', 
+            count = 1
+          }, {
+            name = "z", 
+            offset = 8, 
+            datatype = 7 '\a', 
+            count = 1
+          }, {
+            name = "rgb", 
+            offset = 12, 
+            datatype = 7 '\a', 
+            count = 1
+          }}, 
+        is_bigendian = 0 '\000', 
+        point_step = 16, 
+        row_step = 2000000, 
+        data = std::vector of length 2000000, capacity 2000000 = {0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 102 'f', 102 'f', 
+          102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 205 '\315', 204 '\314', 204 '\314', 61 '=', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 
+          32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 205 '\315', 204 '\314', 76 'L', 62 '>', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 
+          0 '\000', 0 '\000', 154 '\232', 153 '\231', 153 '\231', 62 '>', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 205 '\315', 
+          204 '\314', 204 '\314', 62 '>', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 63 '?', 102 'f', 
+          102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 154 '\232', 153 '\231', 25 '\031', 63 '?', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 
+          0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 51 '3', 51 '3', 51 '3', 63 '?', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 
+          0 '\000', 0 '\000', 205 '\315', 204 '\314', 76 'L', 63 '?', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 102 'f', 102 'f', 
+          102 'f', 63 '?', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 128 '\200', 63 '?', 102 'f', 102 'f', 
+          102 'f', 63 '?', 0 '\000', 0 '\000', 32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 205 '\315', 204 '\314', 140 '\214', 63 '?', 102 'f', 102 'f', 102 'f', 63 '?', 0 '\000', 0 '\000', 
+          32 ' ', 65 'A', 0 '\000', 0 '\000', 0 '\000', 0 '\000'...}, 
+        is_dense = 0 '\000'
+      }, 
+      convex_hull = {
+        header = {
+          seq = 0, 
+          stamp = { ***
+            <ros::TimeBase<ros::Time, ros::Duration>> = {
+              sec = 0, 
+              nsec = 0
+            }, <No data fields>}, 
+          frame_id = "velodyne"
+        }, 
+        polygon = {
+          points = std::vector of length 5, capacity 5 = {{
+              x = 10, 
+              y = 0, 
+              z = 0
+            }, {
+              x = 15, 
+              y = 0, 
+              z = 0
+            }, {
+              x = 15, 
+              y = 5, 
+              z = 0
+            }, {
+              x = 10, 
+              y = 5, 
+              z = 0
+            }, {
+              x = 10, 
+              y = 0, 
+              z = 0
+            }}
+        }
+      }, 
+      candidate_trajectories = {
+        id = 0, 
+        lanes = std::vector of length 0, capacity 0
+      }, 
+      pose_reliable = 0 '\000', 
+      velocity_reliable = 0 '\000', 
+      acceleration_reliable = 0 '\000', 
+      image_frame = "", 
+      x = 0, 
+      y = 0, 
+      width = 0, 
+      height = 0, 
+      angle = 0, 
+      roi_image = {
+        header = {
+          seq = 0, 
+          stamp = {
+            <ros::TimeBase<ros::Time, ros::Duration>> = {
+              sec = 0, 
+              nsec = 0
+            }, <No data fields>}, 
+          frame_id = ""
+        }, 
+        height = 0, 
+        width = 0, 
+        encoding = "", 
+        is_bigendian = 0 '\000', 
+        step = 0, 
+        data = std::vector of length 0, capacity 0
+      }, 
+      indicator_state = 0 '\000', 
+      behavior_state = 0 '\000', 
+      user_defined_info = std::vector of length 0, capacity 0
+    }}
+}

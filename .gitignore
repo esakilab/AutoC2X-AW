@@ -1,0 +1,22 @@
+#ignore build folders
+**/build
+**/Debug
+
+#ignore workspace files
+.metadata
+
+#ignore temp files
+*~
+
+#logs
+*.log
+*.csv
+*.interLog
+
+#stuff
+**/.settings/language.settings.xml
+.directory
+*.db
+documentation/html
+
+.vscode/
