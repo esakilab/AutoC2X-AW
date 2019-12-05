@@ -37,7 +37,7 @@ std::vector<geometry_msgs::Point32> createConvexHull(double x1, double y1, doubl
 
 sensor_msgs::ChannelFloat32 createChannel(std::string name){
 	sensor_msgs::ChannelFloat32 result;
-	int N = 50;
+	int N = 10;
 	result.name = name;
 
 	std::vector<float> values;
@@ -51,14 +51,14 @@ sensor_msgs::ChannelFloat32 createChannel(std::string name){
 
 std::vector<geometry_msgs::Point32> createLine(){
 	std::vector<geometry_msgs::Point32> result;
-	int N = 50;
+	int N = 10;
 	for(int x = 0; x < N; x++){
 		for(int y = 0; y < N; y++){
 			for(int z = 0; z < N; z++){
 				geometry_msgs::Point32 p;
-				p.x = x*0.1 + 10;
-				p.y = y*0.1;
-				p.z = z*0.1;
+				p.x = x*0.5 + 10;
+				p.y = y*0.5;
+				p.z = z*0.5;
 				result.push_back(p);
 			}
 		}
@@ -66,53 +66,92 @@ std::vector<geometry_msgs::Point32> createLine(){
 	return result;
 }
 
-autoware_msgs::DetectedObjectArray createObjectArray(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4){    
+autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::vector<float> Y){
+
     std::random_device rnd;
 	autoware_msgs::DetectedObjectArray msg;
 	std::vector<autoware_msgs::DetectedObject> objects;
 
+	
 	msg.header.frame_id = "velodyne";
-	autoware_msgs::DetectedObject object;
-	object.header.frame_id = "velodyne";
-	object.label = "unknown";
-	object.valid = 1;
-	object.score = 1;
-	object.space_frame = "velodyne";
-	object.pose.position.x = 10;
-	object.pose.position.y = 10;
-	object.pose.orientation.w = 1;
-	object.dimensions.x = 16.3;
-	object.dimensions.y = 4.06;
-	object.dimensions.z = 2.34;
+	ros::Time nowTime = ros::Time::now();
+	for(int i=0; i<X.size(); i++){
+		 
+		// std::chrono::system_clock::time_point t1, t2, t3, t4, t5, t6, t7, t8;
+
+		float x1, y1, x2, y2, x3, y3, x4, y4;
+		x1 = X[i];
+		y1 = Y[i];
+		x2 = X[i] + 10;
+		y2 = Y[i];
+		x3 = X[i]+10;
+		y3 = Y[i]+10;
+		x4 = X[i];
+		y4 = Y[i]+10;
+
+
+		autoware_msgs::DetectedObject object;
+		object.header.frame_id = "velodyne";
+		object.label = "unknown";
+		object.valid = 1;
+		object.score = 1;
+		object.space_frame = "velodyne";
+		object.pose.position.x = 10;
+		object.pose.position.y = 10;
+		object.pose.orientation.w = 1;
+		object.dimensions.x = 16.3;
+		object.dimensions.y = 4.06;
+		object.dimensions.z = 2.34;
 
 
 
-	std::vector<geometry_msgs::Point32> points = createLine();
-	std::vector<sensor_msgs::ChannelFloat32> channels;
-	channels.push_back( createChannel("rgb") );
-	sensor_msgs::PointCloud input_msg;
-	sensor_msgs::PointCloud2 output_msg;
-	input_msg.header.frame_id = "velodyne";
-	input_msg.points = points;
-	input_msg.channels = channels;
-	sensor_msgs::convertPointCloudToPointCloud2(input_msg, output_msg);
-	object.pointcloud = output_msg;
+		// t1 = std::chrono::system_clock::now();
+		std::vector<geometry_msgs::Point32> points = box_line;
+		std::vector<sensor_msgs::ChannelFloat32> channels;
+		// t2 = std::chrono::system_clock::now();
+		channels.push_back( channel );
+		// t3 = std::chrono::system_clock::now();
+		sensor_msgs::PointCloud input_msg;
+		sensor_msgs::PointCloud2 output_msg;
+		// t4 = std::chrono::system_clock::now();
+		input_msg.header.frame_id = "velodyne";
+		input_msg.points = points;
+		input_msg.channels = channels;
+		sensor_msgs::convertPointCloudToPointCloud2(input_msg, output_msg);
+		object.pointcloud = output_msg;
+		// t5 = std::chrono::system_clock::now();
 
-	geometry_msgs::PolygonStamped convex_hull_msg;
-	convex_hull_msg.header.frame_id = "velodyne";
-	geometry_msgs::Polygon polygon;
-	polygon.points = createConvexHull(x1, y1, x2, y2, x3, y3, x4, y4);
-	convex_hull_msg.polygon = polygon;
-	object.convex_hull = convex_hull_msg;
-    
-    ros::Time nowTime = ros::Time::now();
-    object.header.stamp = nowTime;
-    object.pointcloud.header.stamp = nowTime;
-    object.convex_hull.header.stamp = nowTime;
-	objects.push_back(object);
+
+
+		geometry_msgs::PolygonStamped convex_hull_msg;
+		convex_hull_msg.header.frame_id = "velodyne";
+		geometry_msgs::Polygon polygon;
+		polygon.points = createConvexHull(x1, y1, x2, y2, x3, y3, x4, y4);
+		convex_hull_msg.polygon = polygon;
+		object.convex_hull = convex_hull_msg;
+
+
+		
+		object.header.stamp = nowTime;
+		object.pointcloud.header.stamp = nowTime;
+		object.convex_hull.header.stamp = nowTime;
+		objects.push_back(object);
+
+		// t6 = std::chrono::system_clock::now();
+
+		// break;
+
+		// double e1, e2, e3, e4, e5, e6;
+		// e1 = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
+		// e2 = std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count();
+		// e3 = std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count();
+		// e4 = std::chrono::duration_cast<std::chrono::milliseconds>(t5-t4).count();
+		// e5 = std::chrono::duration_cast<std::chrono::milliseconds>(t6-t5).count();
+		// std::cout << "e1:" << e1 << " e2:" << e2 << " e3:" << e3 << " e4:" << e4 << " e5:" << e5 << std::endl;
+	}
+	
 	msg.objects = objects;
     msg.header.stamp = nowTime;
-
     return msg;
 }
 
@@ -156,58 +195,41 @@ projUV ll2xy( string lat, string lon ){
   return pj_fwd(ll, p_proj);
 }
 
-// void callback(const autoware_msgs::DetectedObjectArray msg){
-void callback(const geometry_msgs::PoseStamped msg){
+void callback3(const geometry_msgs::PoseStamped msg){
     prevPose = nowPose;
     nowPose = msg;
 
-    float sin, cos, r, x1, x2, x3, y1, y2, y3, X, Y;
-    // x1 = prevPose.pose.position.x;
-    // y1 = prevPose.pose.position.y;
-    // x2 = nowPose.pose.position.x;
-    // y2 = nowPose.pose.position.y;
-    // r = sqrt( (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) );
-    // sin = (y2 - y1) / r;
-    // cos = (x2 - x1) / r;
+	std::vector<float> X, Y;
 
-    float lat, lon, o_x, o_y;
-    lat = 35.71419722;
-    lon = 139.76148888;
-    projUV obj_xy = ll2xy(to_string(lat), to_string(lon));
+	for(int i=0; i<s_message.latitude.size(); i++){
+		projUV obj_xy = ll2xy(to_string(s_message.latitude[i]/10000000.0), to_string(s_message.longitude[i]/10000000.0));
 
+		float org_x, org_y, moved_x, moved_y, rotated_x, rotated_y;
+		org_x = obj_xy.u;
+		org_y = obj_xy.v;
 
-	float org_x, org_y, moved_x, moved_y, rotated_x, rotated_y;
-	org_x = obj_xy.u;
-	org_y = obj_xy.v;
+		moved_x = org_x - nowPose.pose.position.x;
+		moved_y = org_y - nowPose.pose.position.y;
 
-	moved_x = org_x - nowPose.pose.position.x;
-	moved_y = org_y - nowPose.pose.position.y;
+		std::cout << "i:" << i << " x_diff:" << moved_x << " y_diff:" << moved_y << std::endl;
 
-	// rotated_x = moved_x * std::cos(yaw) + moved_y * std::sin(yaw);
-	// rotated_y = -moved_x * std::sin(yaw) + moved_y * std::cos(yaw);
+		rotated_x = moved_x * (std::cos(-yaw) * std::cos(-pitch)) + moved_y * (std::cos(-yaw) * std::sin(-pitch) * std::sin(-roll) - std::sin(-yaw) * std::cos(-roll));
+		rotated_y = moved_x * (std::sin(-yaw) * std::cos(-pitch)) + moved_y * (std::sin(-yaw) * std::sin(-pitch) * std::sin(-roll) + std::cos(-yaw) * std::cos(-roll));
 
-	rotated_x = moved_x * (std::cos(-yaw) * std::cos(-pitch)) + moved_y * (std::cos(-yaw) * std::sin(-pitch) * std::sin(-roll) - std::sin(-yaw) * std::cos(-roll));
-	rotated_y = moved_x * (std::sin(-yaw) * std::cos(-pitch)) + moved_y * (std::sin(-yaw) * std::sin(-pitch) * std::sin(-roll) + std::cos(-yaw) * std::cos(-roll));
+		X.push_back(rotated_x);
+		Y.push_back(rotated_y);
+		// break;
+	}
 
-	std::cout << "yaw:" << yaw << " pitch:" << pitch << "roll:" << roll << std::endl;
-	std::cout << "x:" << rotated_x << " y:" << rotated_y << std::endl;
-    // x3 = obj_xy.u;
-    // y3 = obj_xy.v;
-
-    // Y = -(-(y3-y2)*cos + (x3-x2)*sin);
-    // X = (y3-y2) * sin + (x3-x2) * cos;
-
-    // std::cout << "dist:" << setprecision(4) <<  sqrt(X*X + Y*Y) <<  "m X:" << X << " Y:" << Y << std::endl;posestamped
-	// std::cout << "x:" << msg.pose.orientation.x << " y:" << msg.pose.orientation.y << " z:" << msg.pose.orientation.z << " w:" << msg.pose.orientation.w << std::endl;
-
-	X = rotated_x;
-	Y = rotated_y;
-    autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y, X+10, Y, X+10, Y+10, X, Y+10);
-    // autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(0, 0, 10, 0, 10, 20, 0, 20);
-
-    chatter_pub.publish(pubMsg);
-
+	autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y);
+	chatter_pub.publish(pubMsg);
 }
+
+
+void callback(const autoware_msgs::DetectedObjectArray msg){
+	std::cout << s_message.latitude.size() << std::endl;
+}
+
 
 void callback2(const tf2_msgs::TFMessage msg){
 	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
@@ -219,16 +241,97 @@ void callback2(const tf2_msgs::TFMessage msg){
 	// yaw *= -1;
 }
 
+void receiveFromRouter(){
+	std::cout << "*****receive setup" << std::endl;
+	int sockfd;
+    int client_sockfd;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof( struct sockaddr_in );
+    struct sockaddr_in from_addr;
+    char buf[4096];
+ 
+    memset( buf, 0, sizeof( buf ) );
+    if( ( sockfd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 ) {
+        perror( "socket" );
+    }
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons( 23457 );
+    addr.sin_addr.s_addr = INADDR_ANY;
+    if( bind( sockfd, (struct sockaddr *)&addr, sizeof( addr ) ) < 0 ) perror( "bind" );
+    if( listen( sockfd, SOMAXCONN ) < 0 ) perror( "listen" );
+    if( ( client_sockfd = accept( sockfd, (struct sockaddr *)&from_addr, &len ) ) < 0 ) perror( "accept" );
+ 
+    // 受信
+    int rsize;
+    while( 1 ) {
+		std::stringstream ss;
+		memset( buf, 0, sizeof( buf ) );
+        rsize = recv( client_sockfd, buf, sizeof( buf ), 0 );
+		ss << buf;
+
+		boost::archive::text_iarchive archive(ss);
+		archive >> s_message;
+
+		// for(int i = 0; i < s_message.latitude.size(); i++){
+		// 	std::cout << "lat:" << s_message.latitude[i] << " lon:" << s_message.longitude[i] << " speed:" << s_message.speed[i] << " time:" << s_message.time[i] << std::endl;
+		// }
+
+		
+        if ( rsize == 0 ) {
+            break;
+        } else if ( rsize == -1 ) {
+            perror( "recv" );
+        }
+		
+    }
+ 
+    close( client_sockfd );
+    close( sockfd );
+}
+
 int main(int argc, char* argv[]){
     paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
     ros::init(argc, argv, "sampleCatcher");
     ros::NodeHandle n;
 
-    // ros::Subscriber sub = n.subscribe("detection/lidar_detector/objects_markers", 1024, callback);
-    ros::Subscriber sub = n.subscribe("ndt_pose", 1024, callback);
+    // ros::Subscriber sub = n.subscribe("detection/lidar_detector/objects", 1024, callback);
 	ros::Subscriber sub2 = n.subscribe("tf", 1024, callback2);
+    ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callback3);
 
-    chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10); 
+    // lat = 35.71419722;
+    // lon = 139.76148888;
+	// lon = 120;
+    chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
+
+	box_line = createLine();
+	channel = createChannel("rgb");
+
+	// s_message.latitude.push_back(35.714464 * 10000000);
+	// s_message.longitude.push_back(139.760606 * 10000000);
+	// s_message.speed.push_back(100);
+	// s_message.time.push_back(100);
+
+	// s_message.latitude.push_back(35.71419722 * 10000000);
+	// s_message.longitude.push_back(139.76148888 * 10000000);
+	// s_message.speed.push_back(100);
+	// s_message.time.push_back(100);
+
+	// s_message.latitude.push_back(35.714497 * 10000000);
+	// s_message.longitude.push_back(139.763014 * 10000000);
+	// s_message.speed.push_back(100);
+	// s_message.time.push_back(100);
+
+	// s_message.latitude.push_back(35.713997 * 10000000);
+	// s_message.longitude.push_back(139.760153 * 10000000);
+	// s_message.speed.push_back(100);
+	// s_message.time.push_back(100);
+
+	// s_message.latitude.push_back(35.712992 * 10000000);
+	// s_message.longitude.push_back(139.759819 * 10000000);
+	// s_message.speed.push_back(100);
+	// s_message.time.push_back(100);
+
+	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
 
     ros::spin();
     return 0;
