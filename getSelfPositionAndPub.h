@@ -22,11 +22,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <boost/thread.hpp>
+#include <sys/time.h>
+#include <time.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/vector.hpp>
@@ -40,7 +43,20 @@ struct message {
 	int time;
 };
 
+struct request{
+	float timestamp;
+
+private:
+	friend class boost::serialization::access;
+	template<class Archive>
+		void serialize( Archive& ar, unsigned int ver){
+			ar & timestamp;
+		}
+};
+
+
 struct socket_message{
+	long timestamp;
 	std::vector<int> speed;
 	std::vector<int> latitude;
 	std::vector<int> longitude;
@@ -50,12 +66,16 @@ private:
 	friend class boost::serialization::access;
 	template<class Archive>
 		void serialize( Archive& ar, unsigned int ver){
+			ar & timestamp;
 			ar & speed;
 			ar & latitude;
 			ar & longitude;
 			ar & time;
 		}
 };
+
+void sendRequestToRouter();
+
 
 PJ *p_proj;
 geometry_msgs::PoseStamped nowPose;
@@ -77,6 +97,11 @@ float speed, longitude, latitude, generationUnixTime;
 boost::thread* mThreadReceive;
 
 socket_message s_message;
+socket_message r_message;
 
 std::vector<geometry_msgs::Point32> box_line;
 sensor_msgs::ChannelFloat32 channel;
+
+std::ofstream delay_output_file;
+
+int sock_fd;

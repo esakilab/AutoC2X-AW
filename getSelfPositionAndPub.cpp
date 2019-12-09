@@ -205,6 +205,8 @@ void callback(const autoware_msgs::DetectedObjectArray msg){
 
 
 void callback2(const tf2_msgs::TFMessage msg){
+	sendRequestToRouter();
+
 	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
 		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
 		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
@@ -238,11 +240,18 @@ void receiveFromRouter(){
 		memset( buf, 0, sizeof( buf ) );
         rsize = recv( client_sockfd, buf, sizeof( buf ), 0 );
 		ss << buf;
-
+		
 		boost::archive::text_iarchive archive(ss);
 		archive >> s_message;
 
-		
+		std::cout << "receive from router" << std::endl;
+
+		struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
+		gettimeofday(&myTime, NULL);
+		long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+
+		std::cout << "now:" << timestamp << " receive:" << s_message.timestamp << " delay:" << timestamp - s_message.timestamp << std::endl;
+		delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
         if ( rsize == 0 ) {
             break;
         } else if ( rsize == -1 ) {
@@ -255,7 +264,68 @@ void receiveFromRouter(){
     close( sockfd );
 }
 
+void sendRequestToRouter(){
+	struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
+	gettimeofday(&myTime, NULL);
+	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+
+	socket_message msg;
+	msg.timestamp = timestamp;
+	msg.speed.push_back(0);
+	msg.longitude.push_back(0);
+	msg.latitude.push_back(0);
+	msg.time.push_back(0);
+
+	std::stringstream ss;
+	boost::archive::text_oarchive archive(ss);
+	archive << msg;
+
+	ss.seekg(0, ios::end);
+	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0) < 0){
+		perror("send");
+	} else {
+
+	}
+}
+
+void output_file_config(){
+	char cur_dir[1024];
+	getcwd(cur_dir, 1024);
+	time_t t = time(nullptr);
+	const tm* lt = localtime(&t);
+	std::stringstream s;
+	s<<"20";
+	s<<lt->tm_year-100; //100を引くことで20xxのxxの部分になる
+	s<<"-";
+	s<<lt->tm_mon+1; //月を0からカウントしているため
+	s<<"-";
+	s<<lt->tm_mday; //そのまま
+	s<<"_";
+	s<<lt->tm_hour;
+	s<<":";
+	s<<lt->tm_min;
+	s<<":";
+	s<<lt->tm_sec;
+	std::string timestamp = s.str();
+
+	std::string filename = std::string(cur_dir) + "/../delay/" + timestamp + ".csv";
+	std::cout << filename << std::endl;
+	delay_output_file.open(filename, std::ios::out);
+}
+
 int main(int argc, char* argv[]){
+
+	output_file_config();
+
+	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
+
+	struct sockaddr_in addr;
+	if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(23458);
+	addr.sin_addr.s_addr = inet_addr("192.168.1.1");
+	connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+
     paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
     ros::init(argc, argv, "sampleCatcher");
     ros::NodeHandle n;
@@ -266,9 +336,14 @@ int main(int argc, char* argv[]){
 
 	box_line = createLine();
 	channel = createChannel("rgb");
+	
 
-	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
-
+	while (1){
+		sendRequestToRouter();
+		sleep(1);
+		// break;
+	}
     ros::spin();
+
     return 0;
 }
