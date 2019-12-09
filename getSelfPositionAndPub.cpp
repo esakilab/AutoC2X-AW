@@ -71,14 +71,11 @@ autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::
     std::random_device rnd;
 	autoware_msgs::DetectedObjectArray msg;
 	std::vector<autoware_msgs::DetectedObject> objects;
-
 	
 	msg.header.frame_id = "velodyne";
 	ros::Time nowTime = ros::Time::now();
 	for(int i=0; i<X.size(); i++){
 		 
-		// std::chrono::system_clock::time_point t1, t2, t3, t4, t5, t6, t7, t8;
-
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		x1 = X[i];
 		y1 = Y[i];
@@ -103,25 +100,16 @@ autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::
 		object.dimensions.y = 4.06;
 		object.dimensions.z = 2.34;
 
-
-
-		// t1 = std::chrono::system_clock::now();
 		std::vector<geometry_msgs::Point32> points = box_line;
 		std::vector<sensor_msgs::ChannelFloat32> channels;
-		// t2 = std::chrono::system_clock::now();
 		channels.push_back( channel );
-		// t3 = std::chrono::system_clock::now();
 		sensor_msgs::PointCloud input_msg;
 		sensor_msgs::PointCloud2 output_msg;
-		// t4 = std::chrono::system_clock::now();
 		input_msg.header.frame_id = "velodyne";
 		input_msg.points = points;
 		input_msg.channels = channels;
 		sensor_msgs::convertPointCloudToPointCloud2(input_msg, output_msg);
 		object.pointcloud = output_msg;
-		// t5 = std::chrono::system_clock::now();
-
-
 
 		geometry_msgs::PolygonStamped convex_hull_msg;
 		convex_hull_msg.header.frame_id = "velodyne";
@@ -130,24 +118,10 @@ autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::
 		convex_hull_msg.polygon = polygon;
 		object.convex_hull = convex_hull_msg;
 
-
-		
 		object.header.stamp = nowTime;
 		object.pointcloud.header.stamp = nowTime;
 		object.convex_hull.header.stamp = nowTime;
 		objects.push_back(object);
-
-		// t6 = std::chrono::system_clock::now();
-
-		// break;
-
-		// double e1, e2, e3, e4, e5, e6;
-		// e1 = std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count();
-		// e2 = std::chrono::duration_cast<std::chrono::milliseconds>(t3-t2).count();
-		// e3 = std::chrono::duration_cast<std::chrono::milliseconds>(t4-t3).count();
-		// e4 = std::chrono::duration_cast<std::chrono::milliseconds>(t5-t4).count();
-		// e5 = std::chrono::duration_cast<std::chrono::milliseconds>(t6-t5).count();
-		// std::cout << "e1:" << e1 << " e2:" << e2 << " e3:" << e3 << " e4:" << e4 << " e5:" << e5 << std::endl;
 	}
 	
 	msg.objects = objects;
@@ -218,7 +192,6 @@ void callback3(const geometry_msgs::PoseStamped msg){
 
 		X.push_back(rotated_x);
 		Y.push_back(rotated_y);
-		// break;
 	}
 
 	autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y);
@@ -236,9 +209,6 @@ void callback2(const tf2_msgs::TFMessage msg){
 		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
 		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
 	}
-	// roll *= -1;
-	// pitch *= -1;
-	// yaw *= -1;
 }
 
 void receiveFromRouter(){
@@ -272,10 +242,6 @@ void receiveFromRouter(){
 		boost::archive::text_iarchive archive(ss);
 		archive >> s_message;
 
-		// for(int i = 0; i < s_message.latitude.size(); i++){
-		// 	std::cout << "lat:" << s_message.latitude[i] << " lon:" << s_message.longitude[i] << " speed:" << s_message.speed[i] << " time:" << s_message.time[i] << std::endl;
-		// }
-
 		
         if ( rsize == 0 ) {
             break;
@@ -294,42 +260,12 @@ int main(int argc, char* argv[]){
     ros::init(argc, argv, "sampleCatcher");
     ros::NodeHandle n;
 
-    // ros::Subscriber sub = n.subscribe("detection/lidar_detector/objects", 1024, callback);
 	ros::Subscriber sub2 = n.subscribe("tf", 1024, callback2);
     ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callback3);
-
-    // lat = 35.71419722;
-    // lon = 139.76148888;
-	// lon = 120;
     chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
 
 	box_line = createLine();
 	channel = createChannel("rgb");
-
-	// s_message.latitude.push_back(35.714464 * 10000000);
-	// s_message.longitude.push_back(139.760606 * 10000000);
-	// s_message.speed.push_back(100);
-	// s_message.time.push_back(100);
-
-	// s_message.latitude.push_back(35.71419722 * 10000000);
-	// s_message.longitude.push_back(139.76148888 * 10000000);
-	// s_message.speed.push_back(100);
-	// s_message.time.push_back(100);
-
-	// s_message.latitude.push_back(35.714497 * 10000000);
-	// s_message.longitude.push_back(139.763014 * 10000000);
-	// s_message.speed.push_back(100);
-	// s_message.time.push_back(100);
-
-	// s_message.latitude.push_back(35.713997 * 10000000);
-	// s_message.longitude.push_back(139.760153 * 10000000);
-	// s_message.speed.push_back(100);
-	// s_message.time.push_back(100);
-
-	// s_message.latitude.push_back(35.712992 * 10000000);
-	// s_message.longitude.push_back(139.759819 * 10000000);
-	// s_message.speed.push_back(100);
-	// s_message.time.push_back(100);
 
 	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
 
