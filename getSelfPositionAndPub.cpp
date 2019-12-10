@@ -250,7 +250,9 @@ void receiveFromRouter(){
 		gettimeofday(&myTime, NULL);
 		long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
 
-		std::cout << "now:" << timestamp << " receive:" << s_message.timestamp << " delay:" << timestamp - s_message.timestamp << std::endl;
+		for(int i=0; i<s_message.time.size(); i++){
+			std::cout << "gendeltaTime:" << s_message.time[i] << std::endl;
+		}
 		delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
         if ( rsize == 0 ) {
             break;
@@ -268,6 +270,8 @@ void sendRequestToRouter(){
 	struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
 	gettimeofday(&myTime, NULL);
 	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+
+	std::cout << "request..." << std::endl;
 
 	socket_message msg;
 	msg.timestamp = timestamp;
@@ -338,12 +342,12 @@ int main(int argc, char* argv[]){
 	channel = createChannel("rgb");
 	
 
-	while (1){
-		sendRequestToRouter();
-		sleep(1);
+	// while (1){
+		// sendRequestToRouter();
+		// sleep(10);
 		// break;
-	}
-    ros::spin();
+	// }
 
+    ros::spin();
     return 0;
 }
