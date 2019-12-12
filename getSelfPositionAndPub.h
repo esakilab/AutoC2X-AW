@@ -56,7 +56,7 @@ private:
 
 
 struct socket_message{
-	long timestamp;
+	// long timestamp;
 	std::vector<int> speed;
 	std::vector<int> latitude;
 	std::vector<int> longitude;
@@ -66,7 +66,7 @@ private:
 	friend class boost::serialization::access;
 	template<class Archive>
 		void serialize( Archive& ar, unsigned int ver){
-			ar & timestamp;
+			// ar & timestamp;
 			ar & speed;
 			ar & latitude;
 			ar & longitude;

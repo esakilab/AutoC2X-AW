@@ -17,3 +17,9 @@ cd build
 cmake ..
 make all
 ```
+
+## how to run
+```
+cd build/
+./autoware_pub
+```

@@ -175,6 +175,8 @@ void callback3(const geometry_msgs::PoseStamped msg){
 
 	std::vector<float> X, Y;
 
+	std::cout << " x:" << nowPose.pose.position.x << std::endl;
+
 	for(int i=0; i<s_message.latitude.size(); i++){
 		projUV obj_xy = ll2xy(to_string(s_message.latitude[i]/10000000.0), to_string(s_message.longitude[i]/10000000.0));
 
@@ -195,7 +197,7 @@ void callback3(const geometry_msgs::PoseStamped msg){
 	}
 
 	autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y);
-	chatter_pub.publish(pubMsg);
+	// chatter_pub.publish(pubMsg);
 }
 
 
@@ -205,8 +207,6 @@ void callback(const autoware_msgs::DetectedObjectArray msg){
 
 
 void callback2(const tf2_msgs::TFMessage msg){
-	sendRequestToRouter();
-
 	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
 		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
 		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
@@ -253,7 +253,7 @@ void receiveFromRouter(){
 		for(int i=0; i<s_message.time.size(); i++){
 			std::cout << "gendeltaTime:" << s_message.time[i] << std::endl;
 		}
-		delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
+		// delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
         if ( rsize == 0 ) {
             break;
         } else if ( rsize == -1 ) {
@@ -266,31 +266,31 @@ void receiveFromRouter(){
     close( sockfd );
 }
 
-void sendRequestToRouter(){
-	struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
-	gettimeofday(&myTime, NULL);
-	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+// void sendRequestToRouter(){
+// 	struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
+// 	gettimeofday(&myTime, NULL);
+// 	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
 
-	std::cout << "request..." << std::endl;
+// 	std::cout << "request..." << std::endl;
 
-	socket_message msg;
-	msg.timestamp = timestamp;
-	msg.speed.push_back(0);
-	msg.longitude.push_back(0);
-	msg.latitude.push_back(0);
-	msg.time.push_back(0);
+// 	socket_message msg;
+// 	msg.timestamp = timestamp;
+// 	msg.speed.push_back(0);
+// 	msg.longitude.push_back(0);
+// 	msg.latitude.push_back(0);
+// 	msg.time.push_back(0);
 
-	std::stringstream ss;
-	boost::archive::text_oarchive archive(ss);
-	archive << msg;
+// 	std::stringstream ss;
+// 	boost::archive::text_oarchive archive(ss);
+// 	archive << msg;
 
-	ss.seekg(0, ios::end);
-	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0) < 0){
-		perror("send");
-	} else {
+// 	ss.seekg(0, ios::end);
+// 	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0) < 0){
+// 		perror("send");
+// 	} else {
 
-	}
-}
+// 	}
+// }
 
 void output_file_config(){
 	char cur_dir[1024];
@@ -321,14 +321,14 @@ int main(int argc, char* argv[]){
 
 	output_file_config();
 
-	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
+	// mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
 
-	struct sockaddr_in addr;
-	if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(23458);
-	addr.sin_addr.s_addr = inet_addr("192.168.1.1");
-	connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+	// struct sockaddr_in addr;
+	// if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
+	// addr.sin_family = AF_INET;
+	// addr.sin_port = htons(23458);
+	// addr.sin_addr.s_addr = inet_addr("192.168.1.1");
+	// connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 
     paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
     ros::init(argc, argv, "sampleCatcher");
@@ -336,10 +336,10 @@ int main(int argc, char* argv[]){
 
 	ros::Subscriber sub2 = n.subscribe("tf", 1024, callback2);
     ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callback3);
-    chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
+    // chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
 
-	box_line = createLine();
-	channel = createChannel("rgb");
+	// box_line = createLine();
+	// channel = createChannel("rgb");
 	
 
 	// while (1){
