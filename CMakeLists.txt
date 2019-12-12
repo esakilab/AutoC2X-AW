@@ -8,14 +8,12 @@ SET(CMAKE_VERBOSE_MAKEFILE "ON")
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules) 
 SET(CMAKE_INSTALL_PREFIX "/usr")
 
-set(autoware_pub_SRCS
-    getSelfPositionAndPub.cpp
+set(autoware_sender_SRCS
+    detectSurroundings.cpp
 )
 
 include_directories(/opt/ros/kinetic/include)
 include_directories(/home/oi/Autoware/ros/install/autoware_msgs/include)
 link_directories(/opt/ros/kinetic/lib)
-add_executable (autoware_pub ${autoware_pub_SRCS})
-target_link_libraries (pub roscpp rosconsole rostime roscpp_serialization)
-target_link_libraries (sub roscpp rosconsole rostime roscpp_serialization)
-target_link_libraries (autoware_pub roscpp rosconsole rostime roscpp_serialization proj boost_thread boost_system boost_serialization)
+add_executable (autoware_sender ${autoware_sender_SRCS})
+target_link_libraries (autoware_sender roscpp rosconsole rostime roscpp_serialization proj boost_thread boost_system boost_serialization)

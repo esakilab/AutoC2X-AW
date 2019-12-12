@@ -23,3 +23,7 @@ make all
 cd build/
 ./autoware_pub
 ```
+
+
+## other
+sudo may be needed
