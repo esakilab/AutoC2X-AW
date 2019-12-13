@@ -31,22 +31,21 @@ void init(ros::NodeHandle n) {
 	s<<lt->tm_sec;
 	std::string timestamp = s.str();
 
-	// std::string filename = std::string(cur_dir) + "/../../../autoware/output/delay/" + timestamp + ".csv";
-	std::string filename = std::string(cur_dir) + "/../autoware/output/delay/" + timestamp + ".csv";
+	std::string filename = std::string(cur_dir) + "/../output/delay/" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
 	delay_output_file.open(filename, std::ios::out);
 
-	filename = std::string(cur_dir) + "/../autoware/output/1_2_delay/" + timestamp + ".csv";
+	filename = std::string(cur_dir) + "/../output/1_2_delay/" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
 	one_two_delay_file.open(filename, std::ios::out);
 
 	//通信モードの時は使う
-	// struct sockaddr_in addr;
-	// if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
-	// addr.sin_family = AF_INET;
-	// addr.sin_port = htons( 23457 );
-	// addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
-	// connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
+	struct sockaddr_in addr;
+	if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons( 23457 );
+	addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
+	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
 
 }
 
@@ -56,10 +55,17 @@ void sendToRouter(){
 	
     gettimeofday(&myTime, NULL);
 	s_message.timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
-	s_message.speed.push_back(speed * 100);
-	s_message.time.push_back(((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
-	s_message.longitude.push_back(longitude * 10000000);
-	s_message.latitude.push_back(latitude * 10000000);
+    auto it1 = s_message.speed.begin();
+    auto it2 = s_message.time.begin();
+    auto it3 = s_message.longitude.begin();
+    auto it4 = s_message.latitude.begin();
+    auto it5 = s_message.stationid.begin();
+
+    s_message.speed.insert(it1,speed * 100);
+	s_message.time.insert(it2, ((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
+	s_message.longitude.insert(it3, longitude * 10000000);
+	s_message.latitude.insert(it4, latitude * 10000000);
+	s_message.stationid.insert(it5, 0);
 
 	std::cout << "delay: " <<  s_message.timestamp << std::endl;
 
@@ -168,12 +174,14 @@ void callback(const geometry_msgs::PoseStamped msg){
 }
 
 void callback_objects(const autoware_msgs::DetectedObjectArray msg){
-	// std::cout << "---------" << std::endl;
 	s_message.longitude.clear();
 	s_message.latitude.clear();
 	s_message.speed.clear();
 	s_message.time.clear();
-	// s_message.data.clear();
+    s_message.stationid.clear();
+
+    std::uniform_int_distribution<> rand(1, 99999);
+
 	for(unsigned int i = 0; i < msg.objects.size(); i++){
 		float sum_x = 0.0;
 		float sum_y = 0.0;
@@ -198,8 +206,11 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 		s_message.longitude.push_back(result.u * 10000000);
 		s_message.latitude.push_back(result.v * 10000000);
 		s_message.speed.push_back(0);
-		s_message.time.push_back(((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
+		// s_message.time.push_back(((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
+		s_message.time.push_back(0);
+		s_message.stationid.push_back(rand(mt));
 
+        
 		// std::cout << std::setprecision(20) <<  "lat:" << result.v * 10000000 << " lon:" << result.u * 10000000 << " time:" << (((long)generationUnixTimeSec*1000 + (long)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536 << std::endl;
 	}
     std::cout << "detected objects:" << msg.objects.size() << std::endl;
@@ -253,8 +264,9 @@ void receiveFromRouter(){
 
 
 int main(int argc,  char* argv[]) {
-    // mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
-    
+    mt = std::mt19937(rnd());
+    mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
+
 	ros::init(argc, argv, "listener");
 	ros::NodeHandle n,n2;
 

@@ -18,14 +18,8 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <random>
 
-struct message {
-	int speed;
-	int latitude;
-	int longitude;
-	int time;
-
-};
 
 struct socket_message{
 	long timestamp;
@@ -33,6 +27,7 @@ struct socket_message{
 	std::vector<int> latitude;
 	std::vector<int> longitude;
 	std::vector<int> time;
+	std::vector<int> stationid;
 
 private:
 	friend class boost::serialization::access;
@@ -43,6 +38,7 @@ private:
 			ar & latitude;
 			ar & longitude;
 			ar & time;
+			ar & stationid;
 		}
 };
 
@@ -79,3 +75,7 @@ int sockfd;
 socket_message s_message;
 
 struct timeval myTime;
+
+
+std::random_device rnd;
+std::mt19937 mt;
