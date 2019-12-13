@@ -36,23 +36,6 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-struct message {
-	int speed;
-	float latitude;
-	float longitude;
-	int time;
-};
-
-struct request{
-	float timestamp;
-
-private:
-	friend class boost::serialization::access;
-	template<class Archive>
-		void serialize( Archive& ar, unsigned int ver){
-			ar & timestamp;
-		}
-};
 
 
 struct socket_message{
@@ -74,7 +57,8 @@ private:
 		}
 };
 
-void sendRequestToRouter();
+void sendBackToRouter();
+
 
 
 PJ *p_proj;
@@ -105,3 +89,4 @@ sensor_msgs::ChannelFloat32 channel;
 std::ofstream delay_output_file;
 
 int sock_fd;
+int flag;
