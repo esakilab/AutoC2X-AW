@@ -9,7 +9,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/Modules)
 SET(CMAKE_INSTALL_PREFIX "/usr")
 
 set(autoware_sender_SRCS
-    detectSurroundings.cpp
+    getSelfPositionAndPub.cpp
 )
 
 include_directories(/opt/ros/kinetic/include)
