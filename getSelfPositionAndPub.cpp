@@ -227,7 +227,7 @@ void sendBackToRouter(){
 	archive << s_message;
 
 	ss.seekg(0, ios::end);
-	if( send( sockfd, ss.str().c_str(), ss.tellp(), 0 ) < 0 ) {
+	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0 ) < 0 ) {
 			perror( "send" );
 	} else {
 	}
