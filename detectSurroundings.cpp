@@ -54,7 +54,8 @@ void sendToRouter(){
 	 // データ送信
 	
     gettimeofday(&myTime, NULL);
-	s_message.timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+	s_message.timestamp = (myTime.tv_sec * 1000000 + myTime.tv_usec) % 50000000;
+	// s_message.timestamp = 100;
     auto it1 = s_message.speed.begin();
     auto it2 = s_message.time.begin();
     auto it3 = s_message.longitude.begin();
