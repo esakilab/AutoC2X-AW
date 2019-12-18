@@ -11,10 +11,6 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
-#include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/archives/portable_binary.hpp>
 #include <boost/thread.hpp>
 #include <string>
 #include "projects.h"
@@ -24,7 +20,6 @@
 #include <iostream>
 #include <random>
 
-#include "build/buffers/socket_message.pb.h"
 
 
 struct socket_message{
@@ -47,33 +42,6 @@ private:
 			ar & stationid;
 		}
 };
-
-// struct socket_message{
-// 	long timestamp;
-// 	std::vector<int> speed;
-// 	std::vector<int> latitude;
-// 	std::vector<int> longitude;
-// 	std::vector<int> time;
-// 	std::vector<int> stationid;
-
-// 	template<class Archive>
-// 		void serialize( Archive& archive){
-//             archive(timestamp, latitude, longitude, time, stationid);
-// 		}
-// };
-
-
-
-
-struct sample_message{
-	long timestamp;
-
-	template<class Archive>
-	void serialize( Archive & archive){
-		archive(timestamp);
-	}
-};
-
 
 
 void init(ros::NodeHandle n);
@@ -99,8 +67,8 @@ geometry_msgs::PoseStamped prevPose;
 boost::thread *mThreadReceiveFromRouter;
 
 PJ *p_proj;
-std::ofstream delay_output_file;
-std::ofstream one_two_delay_file;
+std::ofstream org_output_file;
+std::ofstream ret_output_file;
 
 int sockfd;
 

@@ -44,8 +44,8 @@ void init(ros::NodeHandle n) {
 	if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons( 23457 );
-	// addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
-	addr.sin_addr.s_addr = inet_addr( "10.0.0.1" );
+	addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
+	// addr.sin_addr.s_addr = inet_addr( "10.0.0.1" );
 	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
 
 }
