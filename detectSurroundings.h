@@ -73,8 +73,6 @@ std::ofstream one_two_delay_file;
 int sockfd;
 
 socket_message s_message;
-sample_message sample;
-
 // socketMessagePackage::SOCKET s_proto_message;
 
 struct timeval myTime;

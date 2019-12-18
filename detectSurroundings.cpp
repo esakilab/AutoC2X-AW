@@ -272,7 +272,6 @@ void receiveFromRouter(){
 
 int main(int argc,  char* argv[]) {
     mt = std::mt19937(rnd());
-	sample.timestamp = 11400;
     mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
 
 	ros::init(argc, argv, "listener");
