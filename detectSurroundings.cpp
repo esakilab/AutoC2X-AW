@@ -31,13 +31,13 @@ void init(ros::NodeHandle n) {
 	s<<lt->tm_sec;
 	std::string timestamp = s.str();
 
-	std::string filename = std::string(cur_dir) + "/../output/delay/" + timestamp + ".csv";
+	std::string filename = std::string(cur_dir) + "/../output/full_delay/org/" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
-	delay_output_file.open(filename, std::ios::out);
+	org_output_file.open(filename, std::ios::out);
 
-	filename = std::string(cur_dir) + "/../output/1_2_delay/" + timestamp + ".csv";
+	filename = std::string(cur_dir) + "/../output/full_delay/ret/" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
-	one_two_delay_file.open(filename, std::ios::out);
+	ret_output_file.open(filename, std::ios::out);
 
 	//通信モードの時は使う
 	struct sockaddr_in addr;
@@ -45,7 +45,6 @@ void init(ros::NodeHandle n) {
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons( 23457 );
 	addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
-	// addr.sin_addr.s_addr = inet_addr( "10.0.0.1" );
 	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
 
 }
@@ -69,7 +68,7 @@ void sendToRouter(){
 	s_message.stationid.insert(it5, 0);
 
 	std::cout << "delay: " <<  s_message.timestamp << std::endl;
-
+	org_output_file << s_message.timestamp << "," << s_message.longitude.size() << std::endl;
 
 	std::stringstream ss;
 	{
@@ -167,7 +166,7 @@ void timeCalc(){
 		delaySec -= 1;
 		delayNSec = 1000000000 + delayNSec;
 	}
-	delay_output_file <<  std::setprecision(20) <<  ros::WallTime::now() << "," << delayNSec / 1000000000.0 << std::endl;
+	// delay_output_file <<  std::setprecision(20) <<  ros::WallTime::now() << "," << delayNSec / 1000000000.0 << std::endl;
 }
 
 void callback(const geometry_msgs::PoseStamped msg){
@@ -253,11 +252,9 @@ void receiveFromRouter(){
 		ss << buf;
 
 		boost::archive::text_iarchive archive(ss);
-		// cereal::BinaryInputArchive archive(ss);
 		archive >> s_message;
 
-        gettimeofday(&myTime, NULL);
-		one_two_delay_file << myTime.tv_sec * 1000000 + myTime.tv_usec << "," << s_message.timestamp << std::endl;
+		writeToFile(s_message);
         if ( rsize == 0 ) {
             break;
         } else if ( rsize == -1 ) {
@@ -266,7 +263,12 @@ void receiveFromRouter(){
     }
     close( client_sockfd );
     close( sockfd );
+}
 
+void writeToFile(socket_message msg){
+	gettimeofday(&myTime, NULL);
+	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+	ret_output_file << msg.timestamp << "," << timestamp << "," << msg.latitude.size() << std::endl;
 }
 
 

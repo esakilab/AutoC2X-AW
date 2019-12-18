@@ -52,6 +52,7 @@ void callback(const geometry_msgs::PoseStamped msg);
 void callback_objects(const autoware_msgs::DetectedObjectArray msg);
 void sampleCallback(autoware_msgs::DetectedObjectArray msg);
 std::string paramOrganize(std::string param);
+void writeToFile(socket_message msg);
 
 
 ros::NodeHandle *n;
@@ -67,8 +68,8 @@ geometry_msgs::PoseStamped prevPose;
 boost::thread *mThreadReceiveFromRouter;
 
 PJ *p_proj;
-std::ofstream delay_output_file;
-std::ofstream one_two_delay_file;
+std::ofstream org_output_file;
+std::ofstream ret_output_file;
 
 int sockfd;
 

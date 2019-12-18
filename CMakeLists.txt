@@ -13,8 +13,6 @@ set(autoware_sender_SRCS
 )
 
 
-add_subdirectory(buffers)
-
 include_directories(/opt/ros/kinetic/include)
 include_directories(/home/oi/Autoware/ros/install/autoware_msgs/include)
 link_directories(/opt/ros/kinetic/lib)

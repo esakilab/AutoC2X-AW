@@ -1,8 +1,0 @@
-package socketMessagePackage;
-
-message SOCKET {
-    required int64 timestamp = 1;
-    required int64 latitude = 2;
-    required int64 longitude = 3;
-    required int64 stationid = 4;
-}
