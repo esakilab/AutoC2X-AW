@@ -67,8 +67,8 @@ geometry_msgs::PoseStamped prevPose;
 boost::thread *mThreadReceiveFromRouter;
 
 PJ *p_proj;
-std::ofstream org_output_file;
-std::ofstream ret_output_file;
+std::ofstream delay_output_file;
+std::ofstream one_two_delay_file;
 
 int sockfd;
 
