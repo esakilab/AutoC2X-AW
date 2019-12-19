@@ -55,7 +55,7 @@ void sendToRouter(){
 	 // データ送信
 	
     gettimeofday(&myTime, NULL);
-	s_message.timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+		s_message.timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
     auto it1 = s_message.speed.begin();
     auto it2 = s_message.time.begin();
     auto it3 = s_message.longitude.begin();
@@ -188,7 +188,7 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 
     std::uniform_int_distribution<> rand(1, 99999);
 
-	for(unsigned int i = 0; i < msg.objects.size(); i++){
+	for(unsigned int i = 0; i < min((int)msg.objects.size(), (int)5); i++){
 		float sum_x = 0.0;
 		float sum_y = 0.0;
 		float sum_z = 0.0;
