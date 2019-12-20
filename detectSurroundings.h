@@ -4,6 +4,9 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/point_cloud_conversion.h"
 #include "autoware_msgs/DetectedObjectArray.h"
+#include "tf2_msgs/TFMessage.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Matrix3x3.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/asio.hpp>
@@ -76,11 +79,12 @@ socket_message s_message;
 // socketMessagePackage::SOCKET s_proto_message;
 
 struct timeval myTime;
-
+double roll, yaw, pitch;
 
 std::random_device rnd;
 std::mt19937 mt;
 
+int cnt = 0;
 
 // struct socket_message{
 // 	long timestamp;

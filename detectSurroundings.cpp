@@ -31,22 +31,16 @@ void init(ros::NodeHandle n) {
 	s<<lt->tm_sec;
 	std::string timestamp = s.str();
 
-	std::string filename = std::string(cur_dir) + "/../output/delay/" + timestamp + ".csv";
+	std::string filename = std::string(cur_dir) + "/../output/delay/autoware_delay_" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
 	delay_output_file.open(filename, std::ios::out);
 
-	filename = std::string(cur_dir) + "/../output/1_2_delay/" + timestamp + ".csv";
+	filename = std::string(cur_dir) + "/../output/1_2_delay/1_2_delay_" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
 	one_two_delay_file.open(filename, std::ios::out);
 
 	//通信モードの時は使う
-	struct sockaddr_in addr;
-	if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons( 23457 );
-	addr.sin_addr.s_addr = inet_addr( "192.168.1.1" );
-	// addr.sin_addr.s_addr = inet_addr( "10.0.0.1" );
-	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
+	struct sockaddr_in addrockaddr_in ) );
 
 }
 
@@ -68,7 +62,7 @@ void sendToRouter(){
 	s_message.latitude.insert(it4, latitude * 10000000);
 	s_message.stationid.insert(it5, 0);
 
-	std::cout << "delay: " <<  s_message.timestamp << std::endl;
+	// std::cout << "delay: " <<  s_message.timestamp << std::endl;
 
 
 	std::stringstream ss;
@@ -77,7 +71,7 @@ void sendToRouter(){
 		archive << s_message;
 	}
 
-	std::cout << ss.str().c_str() << std::endl;
+	// std::cout << ss.str().c_str() << std::endl;
 
 	ss.seekg(0, ios::end);
 	if( send( sockfd, ss.str().c_str(), ss.tellp(), 0 ) < 0 ) {
@@ -134,11 +128,16 @@ void calcEgovehicleState(){
 		projUV result = pj_inv(xy, p_proj);
 		result.u /= DEG_TO_RAD;
 		result.v /= DEG_TO_RAD;
+
 		std::cout << std::setprecision(20) << result.v << "," << result.u << std::endl;
 
-		longitude = result.u;
-		latitude = result.v;
-
+		if(result.u < 150){
+			longitude = result.u;
+			latitude = result.v;
+			std::cout << "okashikunai x:" << nowPose.pose.position.x << ", y:" << nowPose.pose.position.y << std::endl;
+		} else {
+			std::cout << "okashii****** x:" << nowPose.pose.position.x << ", y:" << nowPose.pose.position.y << std::endl;
+		}
 		speed = sqrt(d_x + d_y) / timedelta;
 }
 
@@ -171,7 +170,8 @@ void timeCalc(){
 }
 
 void callback(const geometry_msgs::PoseStamped msg){
-    std::cout << "hello" << std::endl;
+	cnt += 1;
+    std::cout << "cnt:" << cnt << std::endl;
 	prevPose = nowPose;
 	nowPose = msg;
 	timeCalc();
@@ -201,27 +201,49 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 		sum_y /= (float)msg.objects[i].convex_hull.polygon.points.size();
 		sum_z /= (float)msg.objects[i].convex_hull.polygon.points.size();
 
+		
+
+		float rotated_view_x, rotated_view_y;
+
+		rotated_view_x = sum_x * (std::cos(yaw) * std::cos(pitch)) + sum_y * (std::cos(yaw) * std::sin(pitch) * std::sin(roll) - std::sin(yaw) * std::cos(roll));
+		rotated_view_y = sum_x * (std::sin(yaw) * std::cos(pitch)) + sum_y * (std::sin(yaw) * std::sin(pitch) * std::sin(roll) + std::cos(yaw) * std::cos(roll));
+
+
+
 		projUV xy;
-		xy.u = sum_x;
-		xy.v = sum_y;
+		xy.u = rotated_view_x + nowPose.pose.position.x;
+		xy.v = rotated_view_y + nowPose.pose.position.y;
+
 		projUV result = pj_inv(xy, p_proj);
 		result.u /= DEG_TO_RAD;
 		result.v /= DEG_TO_RAD;
+
 		// std::cout << std::setprecision(20) << result.v << "," << result.u << std::endl;
 
-		s_message.longitude.push_back(result.u * 10000000);
-		s_message.latitude.push_back(result.v * 10000000);
-		s_message.speed.push_back(0);
-		// s_message.time.push_back(((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
-		s_message.time.push_back(0);
-		s_message.stationid.push_back(rand(mt));
-
+		if(result.u < 150){
+			std::cout << "lat:" << result.u << ", lon:" << result.v << std::endl;
+			
+			s_message.longitude.push_back(result.u * 10000000);
+			s_message.latitude.push_back(result.v * 10000000);
+			s_message.speed.push_back(0);
+			// s_message.time.push_back(((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
+			s_message.time.push_back(0);
+			s_message.stationid.push_back(rand(mt));
+		} 
         
 		// std::cout << std::setprecision(20) <<  "lat:" << result.v * 10000000 << " lon:" << result.u * 10000000 << " time:" << (((long)generationUnixTimeSec*1000 + (long)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536 << std::endl;
 	}
     std::cout << "detected objects:" << msg.objects.size() << std::endl;
 	// sendToRouter(); ここで送る必要はあるか？
 }
+
+void callback_tf(const tf2_msgs::TFMessage msg){
+	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
+		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
+		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
+	}
+}
+
 
 
 void receiveFromRouter(){
@@ -279,6 +301,7 @@ int main(int argc,  char* argv[]) {
 
 	ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callback);
 	ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callback_objects);
+	ros::Subscriber sub3 = n.subscribe("tf", 1024, callback_tf);
 	init(n);
 
 	std::cout << "hairuyo" << std::endl;
