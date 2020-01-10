@@ -39,8 +39,18 @@ void init(ros::NodeHandle n) {
 	std::cout << "filename:" << filename << std::endl;
 	one_two_delay_file.open(filename, std::ios::out);
 
+	filename = std::string(cur_dir) + "/../output/timestamp_record/timestamp_record_" + timestamp + ".csv";
+	std::cout << "filename:" << filename << std::endl;
+	timestamp_record_file.open(filename, std::ios::out);
+
 	//通信モードの時は使う
-	struct sockaddr_in addrockaddr_in ) );
+	struct sockaddr_in addr;
+	if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons( 23457 );
+	addr.sin_addr.s_addr = inet_addr( "192.168.10.1" );
+	// addr.sin_addr.s_addr = inet_addr( "10.0.0.1" );
+	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
 
 }
 
@@ -72,7 +82,7 @@ void sendToRouter(){
 	}
 
 	// std::cout << ss.str().c_str() << std::endl;
-
+	timestamp_record_file << s_message.timestamp << std::endl;
 	ss.seekg(0, ios::end);
 	if( send( sockfd, ss.str().c_str(), ss.tellp(), 0 ) < 0 ) {
 			perror( "send" );
@@ -180,10 +190,10 @@ void callback(const geometry_msgs::PoseStamped msg){
 }
 
 void callback_objects(const autoware_msgs::DetectedObjectArray msg){
-	s_message.longitude.clear();
-	s_message.latitude.clear();
-	s_message.speed.clear();
-	s_message.time.clear();
+		s_message.longitude.clear();
+		s_message.latitude.clear();
+		s_message.speed.clear();
+		s_message.time.clear();
     s_message.stationid.clear();
 
     std::uniform_int_distribution<> rand(1, 99999);
@@ -205,8 +215,14 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 
 		float rotated_view_x, rotated_view_y;
 
-		rotated_view_x = sum_x * (std::cos(yaw) * std::cos(pitch)) + sum_y * (std::cos(yaw) * std::sin(pitch) * std::sin(roll) - std::sin(yaw) * std::cos(roll));
-		rotated_view_y = sum_x * (std::sin(yaw) * std::cos(pitch)) + sum_y * (std::sin(yaw) * std::sin(pitch) * std::sin(roll) + std::cos(yaw) * std::cos(roll));
+		// rotated_view_x = sum_x * (std::cos(yaw) * std::cos(pitch)) + sum_y * (std::cos(yaw) * std::sin(pitch) * std::sin(roll) - std::sin(yaw) * std::cos(roll));
+		// rotated_view_y = sum_x * (std::sin(yaw) * std::cos(pitch)) + sum_y * (std::sin(yaw) * std::sin(pitch) * std::sin(roll) + std::cos(yaw) * std::cos(roll));
+
+		rotated_view_x = sum_x * (std::cos(-yaw) * std::cos(-pitch)) + sum_y * (std::cos(-yaw) * std::sin(-pitch) * std::sin(-roll) - std::sin(-yaw) * std::cos(-roll));
+		rotated_view_y = sum_x * (std::sin(-yaw) * std::cos(-pitch)) + sum_y * (std::sin(-yaw) * std::sin(-pitch) * std::sin(-roll) + std::cos(-yaw) * std::cos(-roll));
+
+		// rotated_view_x = sum_x * (std::cos(yaw) * std::cos(pitch)) + sum_y * (std::cos(yaw) * std::sin(pitch) * std::sin(roll) - std::sin(yaw) * std::cos(roll)) + sum_z * (std::cos(yaw) * std::sin(pitch) * std::cos(roll) + std::sin(yaw) * std::sin(roll));
+		// rotated_view_y = sum_x * (std::sin(yaw) * std::cos(pitch)) + sum_y * (std::sin(yaw) * std::sin(pitch) * std::sin(roll) + std::cos(yaw) * std::cos(roll)) + sum_z * (std::sin(yaw) * std::sin(pitch) * std::cos(roll) - std::cos(yaw) * std::sin(roll));
 
 
 

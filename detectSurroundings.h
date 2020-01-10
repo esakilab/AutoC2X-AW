@@ -72,6 +72,7 @@ boost::thread *mThreadReceiveFromRouter;
 PJ *p_proj;
 std::ofstream delay_output_file;
 std::ofstream one_two_delay_file;
+std::ofstream timestamp_record_file;
 
 int sockfd;
 
