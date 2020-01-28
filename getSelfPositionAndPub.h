@@ -57,6 +57,8 @@ private:
 
 struct socket_message{
 	long timestamp;
+	float lat;
+	float lon;
 	std::vector<int> speed;
 	std::vector<int> latitude;
 	std::vector<int> longitude;
@@ -67,6 +69,8 @@ private:
 	template<class Archive>
 		void serialize( Archive& ar, unsigned int ver){
 			ar & timestamp;
+			ar & lat;
+			ar & lon;
 			ar & speed;
 			ar & latitude;
 			ar & longitude;
@@ -103,6 +107,7 @@ std::vector<geometry_msgs::Point32> box_line;
 sensor_msgs::ChannelFloat32 channel;
 
 std::ofstream delay_output_file;
+std::ofstream timestamp_output_file;
 
 int sock_fd;
 int flag;
