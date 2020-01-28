@@ -47,15 +47,15 @@ private:
 };
 
 
-void init(ros::NodeHandle n);
 void sendToRouter();
 void calcEgovehicleState();
 void timeCalc();
 void callback(const geometry_msgs::PoseStamped msg);
 void callback_objects(const autoware_msgs::DetectedObjectArray msg);
 void sampleCallback(autoware_msgs::DetectedObjectArray msg);
+void createFolder();
+void createSocket(std::string ip_addr);
 std::string paramOrganize(std::string param);
-
 
 ros::NodeHandle *n;
 double speed;
@@ -77,7 +77,6 @@ std::ofstream timestamp_record_file;
 int sockfd;
 
 socket_message s_message;
-// socketMessagePackage::SOCKET s_proto_message;
 
 struct timeval myTime;
 double roll, yaw, pitch;
@@ -86,24 +85,3 @@ std::random_device rnd;
 std::mt19937 mt;
 
 int cnt = 0;
-
-// struct socket_message{
-// 	long timestamp;
-// 	std::vector<int> speed;
-// 	std::vector<int> latitude;
-// 	std::vector<int> longitude;
-// 	std::vector<int> time;
-// 	std::vector<int> stationid;
-
-// private:
-// 	friend class cereal::access;
-// 	template<class Archive>
-// 		void serialize( Archive& ar, std::uint32_t const version){
-// 			ar & timestamp;
-// 			ar & speed;
-// 			ar & latitude;
-// 			ar & longitude;
-// 			ar & time;
-// 			ar & stationid;
-// 		}
-// };
