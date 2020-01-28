@@ -84,7 +84,7 @@ void sendToRouter(){
 	}
 }
 
-std::string paramOrganize(std::string param){
+std::string paramOrganize(std::string param){ //libproj setup. param is to specify which epsg_code you use.
 	char **prm;
 	std::string params;
 	params=param+" no_defs";
@@ -122,7 +122,6 @@ void calcEgovehicleState(){
 	double d_x = pow(prevPose.pose.position.x - nowPose.pose.position.x, 2);
 	double d_y = pow(prevPose.pose.position.y - nowPose.pose.position.y, 2);
 
-	// double degToRad = M_PI / 180;
 	projUV xy;
 	xy.u = nowPose.pose.position.x;
 	xy.v = nowPose.pose.position.y;
@@ -168,8 +167,8 @@ void timeCalc(){
 	delay_output_file <<  std::setprecision(20) <<  ros::WallTime::now() << "," << delayNSec / 1000000000.0 << std::endl;
 }
 
-void callback(const geometry_msgs::PoseStamped msg){
-	cnt += 1;
+void callbackNdtPose(const geometry_msgs::PoseStamped msg){
+	// cnt += 1;
 	prevPose = nowPose;
 	nowPose = msg;
 	timeCalc();
@@ -177,7 +176,7 @@ void callback(const geometry_msgs::PoseStamped msg){
 	sendToRouter();	
 }
 
-void callback_objects(const autoware_msgs::DetectedObjectArray msg){
+void callbackDetectionObjects(const autoware_msgs::DetectedObjectArray msg){
 	s_message.longitude.clear();
 	s_message.latitude.clear();
 	s_message.speed.clear();
@@ -226,14 +225,12 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 	sendToRouter(); //ここで送る必要はあるか？
 }
 
-void callback_tf(const tf2_msgs::TFMessage msg){
+void callbackTF(const tf2_msgs::TFMessage msg){
 	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
 		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
 		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
 	}
 }
-
-
 
 void receiveFromRouter(){
     std::cout << "*****receive setup" << std::endl;
@@ -279,23 +276,59 @@ void receiveFromRouter(){
 
 }
 
+void loadOpt(int argc, char* argv[]){
+	isSender = true;
+	int i, opt;
+	opterr = 0; //getopt()のエラーメッセージを無効にする。
+    while ((opt = getopt(argc, argv, "sr:")) != -1) {
+        //コマンドライン引数のオプションがなくなるまで繰り返す
+        switch (opt) {
+            case 's':
+                break;
+
+            case 'r':
+				isSender = false;
+                break;
+
+            default: /* '?' */
+                //指定していないオプションが渡された場合
+                printf("Usage: %s [-s] [-r] ip_addr ...\n", argv[0]);
+				// return -1;
+                break;
+        }
+    }
+    //オプション以外の引数を出力する
+    for (i = optind; i < argc; i++) {
+		ip_addr = std::string(argv[i]);
+		std::cout << ip_addr << std::endl;
+		break;
+    }
+	if(ip_addr.length() < 4){
+		printf("Usage: %s [-s] [-r] ip_addr ...\n", argv[0]);
+	}
+}
+
 
 int main(int argc,  char* argv[]) {
-    mt = std::mt19937(rnd());
-    mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
+	loadOpt(argc, argv);
 
-	ros::init(argc, argv, "listener");
-	ros::NodeHandle n,n2;
+	if(isSender){
+		mt = std::mt19937(rnd());
+		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
+		paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
+		createFolder();
+		createSocket(ip_addr);
 
-	ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callback);
-	ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callback_objects);
-	ros::Subscriber sub3 = n.subscribe("tf", 1024, callback_tf);
-
-	paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
-	createFolder();
-	createSocket("192.168.10.1");
-
-	ros::spin();
+		ros::init(argc, argv, "listener");
+		ros::NodeHandle n,n2;
+		ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
+		ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callbackDetectionObjects);
+		ros::Subscriber sub3 = n.subscribe("tf", 1024, callbackTF);
+		ros::spin();
+	} else {
+		
+	}
+    
 	return 0;
 }
 

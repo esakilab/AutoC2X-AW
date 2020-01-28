@@ -85,3 +85,6 @@ std::random_device rnd;
 std::mt19937 mt;
 
 int cnt = 0;
+
+bool isSender;
+std::string ip_addr;
