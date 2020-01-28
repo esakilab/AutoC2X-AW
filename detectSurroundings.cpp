@@ -67,10 +67,10 @@ void sendToRouter(){
     auto it5 = s_message.stationid.begin();
 
     s_message.speed.insert(it1,speed * 100);
-	s_message.time.insert(it2, ((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
-	s_message.longitude.insert(it3, longitude * 10000000);
-	s_message.latitude.insert(it4, latitude * 10000000);
-	s_message.stationid.insert(it5, 0);
+		s_message.time.insert(it2, ((generationUnixTimeSec*1000 + (int)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536);
+		s_message.longitude.insert(it3, longitude * 10000000);
+		s_message.latitude.insert(it4, latitude * 10000000);
+		s_message.stationid.insert(it5, 0);
 
 	// std::cout << "delay: " <<  s_message.timestamp << std::endl;
 
@@ -181,12 +181,12 @@ void timeCalc(){
 
 void callback(const geometry_msgs::PoseStamped msg){
 	cnt += 1;
-    std::cout << "cnt:" << cnt << std::endl;
+	std::cout << "*****************cnt:" << cnt << std::endl;
 	prevPose = nowPose;
 	nowPose = msg;
 	timeCalc();
 	calcEgovehicleState();
-	sendToRouter();
+	sendToRouter();	
 }
 
 void callback_objects(const autoware_msgs::DetectedObjectArray msg){
@@ -250,7 +250,7 @@ void callback_objects(const autoware_msgs::DetectedObjectArray msg){
 		// std::cout << std::setprecision(20) <<  "lat:" << result.v * 10000000 << " lon:" << result.u * 10000000 << " time:" << (((long)generationUnixTimeSec*1000 + (long)generationUnixTimeNSec/1000000 - 1072850400000)) % 65536 << std::endl;
 	}
     std::cout << "detected objects:" << msg.objects.size() << std::endl;
-	// sendToRouter(); ここで送る必要はあるか？
+	sendToRouter(); //ここで送る必要はあるか？
 }
 
 void callback_tf(const tf2_msgs::TFMessage msg){
