@@ -43,13 +43,13 @@ void createFolder(){
 	timestamp_record_file.open(filename, std::ios::out);
 }
 
-void createSocket(std::string ip_addr){
+void createSocket(std::string router_addr){
 	//通信モードの時は使う
 	struct sockaddr_in addr;
 	if( (sockfd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror( "socket" ); 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons( 23457 );
-	addr.sin_addr.s_addr = inet_addr( ip_addr.c_str() );
+	addr.sin_addr.s_addr = inet_addr( router_addr.c_str() );
 	connect( sockfd, (struct sockaddr *)&addr, sizeof( struct sockaddr_in ) );
 }
 
@@ -168,7 +168,6 @@ void timeCalc(){
 }
 
 void callbackNdtPose(const geometry_msgs::PoseStamped msg){
-	// cnt += 1;
 	prevPose = nowPose;
 	nowPose = msg;
 	timeCalc();
@@ -232,7 +231,7 @@ void callbackTF(const tf2_msgs::TFMessage msg){
 	}
 }
 
-void receiveFromRouter(){
+void receiveFromRouterAtSender(){
     std::cout << "*****receive setup" << std::endl;
     int sockfd;
     int client_sockfd;
@@ -292,19 +291,19 @@ void loadOpt(int argc, char* argv[]){
 
             default: /* '?' */
                 //指定していないオプションが渡された場合
-                printf("Usage: %s [-s] [-r] ip_addr ...\n", argv[0]);
+                printf("Usage: %s [-s] [-r] router_addr ...\n", argv[0]);
 				// return -1;
                 break;
         }
     }
     //オプション以外の引数を出力する
     for (i = optind; i < argc; i++) {
-		ip_addr = std::string(argv[i]);
-		std::cout << ip_addr << std::endl;
+		router_addr = std::string(argv[i]);
+		std::cout << router_addr << std::endl;
 		break;
     }
-	if(ip_addr.length() < 4){
-		printf("Usage: %s [-s] [-r] ip_addr ...\n", argv[0]);
+	if(router_addr.length() < 4){
+		printf("Usage: %s [-s] [-r] router_addr ...\n", argv[0]);
 	}
 }
 
@@ -314,10 +313,10 @@ int main(int argc,  char* argv[]) {
 
 	if(isSender){
 		mt = std::mt19937(rnd());
-		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouter));
+		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
 		paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
 		createFolder();
-		createSocket(ip_addr);
+		createSocket(router_addr);
 
 		ros::init(argc, argv, "listener");
 		ros::NodeHandle n,n2;
