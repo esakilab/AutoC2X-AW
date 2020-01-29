@@ -1,6 +1,7 @@
 #ignore build folders
 **/build
 **/Debug
+**/tmp
 
 #ignore workspace files
 .metadata
