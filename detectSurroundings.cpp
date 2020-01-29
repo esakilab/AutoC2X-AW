@@ -279,7 +279,7 @@ void loadOpt(int argc, char* argv[]){
 	isSender = true;
 	int i, opt;
 	opterr = 0; //getopt()のエラーメッセージを無効にする。
-    while ((opt = getopt(argc, argv, "sr:")) != -1) {
+    while ((opt = getopt(argc, argv, "sr")) != -1) {
         //コマンドライン引数のオプションがなくなるまで繰り返す
         switch (opt) {
             case 's':
@@ -310,22 +310,21 @@ void loadOpt(int argc, char* argv[]){
 
 int main(int argc,  char* argv[]) {
 	loadOpt(argc, argv);
+	paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
 
 	if(isSender){
 		mt = std::mt19937(rnd());
 		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
-		paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
 		createFolder();
 		createSocket(router_addr);
-
 		ros::init(argc, argv, "listener");
-		ros::NodeHandle n,n2;
+		ros::NodeHandle n;
 		ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
 		ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callbackDetectionObjects);
 		ros::Subscriber sub3 = n.subscribe("tf", 1024, callbackTF);
 		ros::spin();
 	} else {
-		
+			
 	}
     
 	return 0;
