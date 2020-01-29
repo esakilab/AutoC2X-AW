@@ -555,27 +555,28 @@ int main(int argc,  char* argv[]) {
 
 	if(isSender){
 		mt = std::mt19937(rnd());
-		// mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
-		// createFolder();
-		// createSocket(router_addr);
-		std::cout << "socket_created" << std::endl;
+		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
+		createFolder();
+		createSocket(router_addr);
+
 		ros::init(argc, argv, "listener");
-		ros::NodeHandle n;
+		ros::NodeHandle n,n2;
 		ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
 		ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callbackDetectionObjects);
 		ros::Subscriber sub3 = n.subscribe("tf", 1024, callbackTF);
+		ros::spin();
 	} else {
-		// output_file_config();
-		// mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
-		// ros::init(argc, argv, "sampleCatcher");
-		// ros::NodeHandle n;
+		output_file_config();
+		mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
+		ros::init(argc, argv, "sampleCatcher");
+		ros::NodeHandle n;
 
-		// ros::Subscriber sub2 = n.subscribe("tf", 1024, callbackTF);
-		// ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
-		// chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
+		ros::Subscriber sub2 = n.subscribe("tf", 1024, callbackTF);
+		ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
+		chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
 
-		// box_line = createLine();
-		// channel = createChannel("rgb");
+		box_line = createLine();
+		channel = createChannel("rgb");
 	}
 	ros::spin();    
 	
