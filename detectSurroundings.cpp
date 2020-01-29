@@ -407,12 +407,43 @@ void timeCalc(){
 }
 
 void callbackNdtPose(const geometry_msgs::PoseStamped msg){
-	prevPose = nowPose;
-	nowPose = msg;
-	std::cout << "hello" << std::endl;
-	timeCalc();
-	calcEgovehicleState();
-	sendToRouter();	
+	if (isSender) {
+		prevPose = nowPose;
+		nowPose = msg;
+		std::cout << "hello" << std::endl;
+		timeCalc();
+		calcEgovehicleState();
+		sendToRouter();	
+	} else {
+		prevPose = nowPose;
+		nowPose = msg;
+
+		std::vector<float> X, Y;
+
+		for(int i=0; i<r_message.latitude.size(); i++){
+			projUV obj_xy = ll2xy(to_string(r_message.latitude[i]/10000000.0), to_string(r_message.longitude[i]/10000000.0));
+
+			float org_x, org_y, moved_x, moved_y, rotated_x, rotated_y;
+			org_x = obj_xy.u;
+			org_y = obj_xy.v;
+
+			moved_x = org_x - nowPose.pose.position.x;
+			moved_y = org_y - nowPose.pose.position.y;
+
+			std::cout << "i:" << i << " x_diff:" << moved_x << " y_diff:" << moved_y << std::endl;
+
+			rotated_x = moved_x * (std::cos(-yaw) * std::cos(-pitch)) + moved_y * (std::cos(-yaw) * std::sin(-pitch) * std::sin(-roll) - std::sin(-yaw) * std::cos(-roll));
+			rotated_y = moved_x * (std::sin(-yaw) * std::cos(-pitch)) + moved_y * (std::sin(-yaw) * std::sin(-pitch) * std::sin(-roll) + std::cos(-yaw) * std::cos(-roll));
+
+			X.push_back(rotated_x);
+			Y.push_back(rotated_y);
+		}
+
+		autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y);
+		chatter_pub.publish(pubMsg);
+		std::cout << "publishing" << std::endl;
+	}
+	
 }
 
 void callbackDetectionObjects(const autoware_msgs::DetectedObjectArray msg){
@@ -577,8 +608,8 @@ int main(int argc,  char* argv[]) {
 
 		box_line = createLine();
 		channel = createChannel("rgb");
+		ros::spin();    
 	}
-	ros::spin();    
 	
 	return 0;
 }
