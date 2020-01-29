@@ -79,12 +79,12 @@ autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::
 		float x1, y1, x2, y2, x3, y3, x4, y4;
 		x1 = X[i];
 		y1 = Y[i];
-		x2 = X[i]+5;
+		x2 = X[i] + 10;
 		y2 = Y[i];
-		x3 = X[i]+5;
-		y3 = Y[i]+5;
+		x3 = X[i]+10;
+		y3 = Y[i]+10;
 		x4 = X[i];
-		y4 = Y[i]+5;
+		y4 = Y[i]+10;
 
 
 		autoware_msgs::DetectedObject object;
@@ -169,20 +169,7 @@ projUV ll2xy( string lat, string lon ){
   return pj_fwd(ll, p_proj);
 }
 
-void calcEgoVehicleState(){
-	projUV xy;
-	xy.u = nowPose.pose.position.x;
-	xy.v = nowPose.pose.position.y;
-	projUV result = pj_inv(xy, p_proj);
-	result.u /= DEG_TO_RAD;
-	result.v /= DEG_TO_RAD;
-	lat = result.u;
-	lon = result.v;
-
-	std::cout << std::setprecision(20) << "lat:" << lat << ", lon:" << lon << std::endl;
-}
-
-void callback3(const geometry_msgs::PoseStamped msg){
+void callbackNdtPose(const geometry_msgs::PoseStamped msg){
     prevPose = nowPose;
     nowPose = msg;
 
@@ -190,8 +177,8 @@ void callback3(const geometry_msgs::PoseStamped msg){
 
 	for(int i=0; i<s_message.latitude.size(); i++){
 		projUV obj_xy = ll2xy(to_string(s_message.latitude[i]/10000000.0), to_string(s_message.longitude[i]/10000000.0));
-		std::cout << "********" << to_string(s_message.latitude[i]/10000000.0) << ", " << to_string(s_message.longitude[i]/10000000.0) << std::endl;
-		double org_x, org_y, moved_x, moved_y, rotated_x, rotated_y;
+
+		float org_x, org_y, moved_x, moved_y, rotated_x, rotated_y;
 		org_x = obj_xy.u;
 		org_y = obj_xy.v;
 
@@ -203,29 +190,19 @@ void callback3(const geometry_msgs::PoseStamped msg){
 		rotated_x = moved_x * (std::cos(-yaw) * std::cos(-pitch)) + moved_y * (std::cos(-yaw) * std::sin(-pitch) * std::sin(-roll) - std::sin(-yaw) * std::cos(-roll));
 		rotated_y = moved_x * (std::sin(-yaw) * std::cos(-pitch)) + moved_y * (std::sin(-yaw) * std::sin(-pitch) * std::sin(-roll) + std::cos(-yaw) * std::cos(-roll));
 
-		// rotated_x = moved_x * (std::cos(yaw) * std::cos(pitch)) + moved_y * (std::cos(yaw) * std::sin(pitch) * std::sin(roll) - std::sin(yaw) * std::cos(roll));
-		// rotated_y = moved_x * (std::sin(yaw) * std::cos(pitch)) + moved_y * (std::sin(yaw) * std::sin(pitch) * std::sin(roll) + std::cos(yaw) * std::cos(roll));
-
 		X.push_back(rotated_x);
 		Y.push_back(rotated_y);
 	}
 
 	autoware_msgs::DetectedObjectArray pubMsg = createObjectArray(X, Y);
 	chatter_pub.publish(pubMsg);
-	calcEgoVehicleState();
 }
 
 
-void callback(const autoware_msgs::DetectedObjectArray msg){
-	std::cout << s_message.latitude.size() << std::endl;
-}
-
-
-void callback2(const tf2_msgs::TFMessage msg){
+void callbackTF(const tf2_msgs::TFMessage msg){
 	if(msg.transforms[0].header.frame_id == "/map" && msg.transforms[0].child_frame_id == "/base_link"){
 		tf2::Quaternion rot_q(msg.transforms[0].transform.rotation.x, msg.transforms[0].transform.rotation.y, msg.transforms[0].transform.rotation.z, msg.transforms[0].transform.rotation.w);
 		tf2::Matrix3x3(rot_q).getRPY(roll, pitch, yaw);
-		// std::cout << "x:" << msg.transform.translation.x << ", y:" << msg.transform.translation.y
 	}
 }
 
@@ -235,13 +212,11 @@ void sendBackToRouter(){
         if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
         addr.sin_family = AF_INET;
         addr.sin_port = htons(23458);
-        addr.sin_addr.s_addr = inet_addr("192.168.10.1");
+		std::cout << "addr:" << router_addr << std::endl;
+        addr.sin_addr.s_addr = inet_addr(router_addr.c_str());
         connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
         flag = 100;
     }
-
-	s_message.lat = lat;
-	s_message.lon = lon;
 
     std::stringstream ss;
 	boost::archive::text_oarchive archive(ss);
@@ -287,15 +262,15 @@ void receiveFromRouter(){
 		archive >> s_message;
 
 		std::cout << "receive from router" << std::endl;
-		timestamp_output_file << s_message.timestamp << std::endl;
+
 		struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
 		gettimeofday(&myTime, NULL);
 		long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
 
 		for(int i=0; i<s_message.time.size(); i++){
-			std::cout << "gendeltaTime:" << s_message.time[i] << ", lat:" << s_message.latitude[i] << ", lon:" << s_message.longitude[i] << std::endl;
+			std::cout << "gendeltaTime:" << s_message.time[i] << std::endl;
 		}
-		// delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
+		delay_output_file << timestamp << "," << s_message.timestamp << std::endl;
 
         sendBackToRouter();
 
@@ -333,58 +308,66 @@ void output_file_config(){
 	s<<lt->tm_sec;
 	std::string timestamp = s.str();
 
-	std::string filename = std::string(cur_dir) + "/../timestamp/" + timestamp + ".csv";
+	std::string filename = std::string(cur_dir) + "/../delay/" + timestamp + ".csv";
 	std::cout << filename << std::endl;
-	timestamp_output_file.open(filename, std::ios::out);
+	delay_output_file.open(filename, std::ios::out);
+}
+
+void loadOpt(int argc, char* argv[]){
+	isSender = true;
+	int i, opt;
+	opterr = 0; //getopt()のエラーメッセージを無効にする。
+    while ((opt = getopt(argc, argv, "sr")) != -1) {
+        //コマンドライン引数のオプションがなくなるまで繰り返す
+        switch (opt) {
+            case 's':
+                break;
+
+            case 'r':
+				isSender = false;
+                break;
+
+            default: /* '?' */
+                //指定していないオプションが渡された場合
+                printf("Usage: %s [-s] [-r] router_addr ...\n", argv[0]);
+				// return -1;
+                break;
+        }
+    }
+    //オプション以外の引数を出力する
+    for (i = optind; i < argc; i++) {
+		router_addr = std::string(argv[i]);
+		std::cout << router_addr << std::endl;
+		break;
+    }
+	if(router_addr.length() < 4){
+		printf("Usage: %s [-s] [-r] router_addr ...\n", argv[0]);
+	}
 }
 
 int main(int argc, char* argv[]){
 
 	output_file_config();
+	loadOpt(argc, argv);
 
-	mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
+	if (isSender == false){
+		mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
 
-    paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
-    ros::init(argc, argv, "sampleCatcher");
-    ros::NodeHandle n;
+		paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
+		ros::init(argc, argv, "sampleCatcher");
+		ros::NodeHandle n;
 
-	ros::Subscriber sub2 = n.subscribe("tf", 1024, callback2);
-    ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callback3);
-    chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
+		ros::Subscriber sub2 = n.subscribe("tf", 1024, callbackTF);
+		ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
+		chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
 
-	box_line = createLine();
-	channel = createChannel("rgb");
+		box_line = createLine();
+		channel = createChannel("rgb");
+		
+		ros::spin();
+		return 0;
+	}
 	
-
-
-    ros::spin();
-    return 0;
 }
 
 
-
-// void sendRequestToRouter(){
-// 	struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
-// 	gettimeofday(&myTime, NULL);
-// 	long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
-
-// 	std::cout << "request..." << std::endl;
-
-// 	socket_message msg;
-// 	msg.timestamp = timestamp;
-// 	msg.speed.push_back(0);
-// 	msg.longitude.push_back(0);
-// 	msg.latitude.push_back(0);
-// 	msg.time.push_back(0);
-
-// 	std::stringstream ss;
-// 	boost::archive::text_oarchive archive(ss);
-// 	archive << msg;
-
-// 	ss.seekg(0, ios::end);
-// 	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0) < 0){
-// 		perror("send");
-// 	} else {
-
-// 	}
-// }
