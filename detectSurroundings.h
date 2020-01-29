@@ -107,6 +107,7 @@ sensor_msgs::ChannelFloat32 channel;
 int sock_fd;
 int flag;
 socket_message_receiver r_message;
+boost::thread* mThreadReceive;
 
 
 /*

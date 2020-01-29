@@ -8,6 +8,163 @@
 
 using namespace std;
 
+std::vector<geometry_msgs::Point32> createConvexHull(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4){
+    std::random_device rnd;
+
+	std::vector<geometry_msgs::Point32> result;
+
+	geometry_msgs::Point32 a1, a2, a3, a4;
+
+	a1.x = x1;
+	a1.y = y1;
+	a1.z = 0;
+	
+	a2.x = x2;
+	a2.y = y2;
+	a2.z = 0;
+
+	a3.x = x3;
+	a3.y = y3;
+	a3.z = 0;
+
+	a4.x = x4;
+	a4.y = y4;
+	a4.z = 0;
+
+	result.push_back(a1);
+	result.push_back(a2);
+	result.push_back(a3);
+	result.push_back(a4);
+	result.push_back(a1);
+
+	return result;
+}
+
+sensor_msgs::ChannelFloat32 createChannel(std::string name){
+	sensor_msgs::ChannelFloat32 result;
+	int N = 10;
+	result.name = name;
+
+	std::vector<float> values;
+	for(int i=0; i<N*N*N ; i++){
+		values.push_back(0.9);
+	}
+
+	result.values = values;
+	return result;
+}
+
+std::vector<geometry_msgs::Point32> createLine(){
+	std::vector<geometry_msgs::Point32> result;
+	int N = 10;
+	for(int x = 0; x < N; x++){
+		for(int y = 0; y < N; y++){
+			for(int z = 0; z < N; z++){
+				geometry_msgs::Point32 p;
+				p.x = x*0.5 + 10;
+				p.y = y*0.5;
+				p.z = z*0.5;
+				result.push_back(p);
+			}
+		}
+	}
+	return result;
+}
+
+autoware_msgs::DetectedObjectArray createObjectArray(std::vector<float> X, std::vector<float> Y){
+
+    std::random_device rnd;
+	autoware_msgs::DetectedObjectArray msg;
+	std::vector<autoware_msgs::DetectedObject> objects;
+	
+	msg.header.frame_id = "velodyne";
+	ros::Time nowTime = ros::Time::now();
+	for(int i=0; i<X.size(); i++){
+		 
+		float x1, y1, x2, y2, x3, y3, x4, y4;
+		x1 = X[i];
+		y1 = Y[i];
+		x2 = X[i] + 10;
+		y2 = Y[i];
+		x3 = X[i]+10;
+		y3 = Y[i]+10;
+		x4 = X[i];
+		y4 = Y[i]+10;
+
+
+		autoware_msgs::DetectedObject object;
+		object.header.frame_id = "velodyne";
+		object.label = "unknown";
+		object.valid = 1;
+		object.score = 1;
+		object.space_frame = "velodyne";
+		object.pose.position.x = 10;
+		object.pose.position.y = 10;
+		object.pose.orientation.w = 1;
+		object.dimensions.x = 16.3;
+		object.dimensions.y = 4.06;
+		object.dimensions.z = 2.34;
+
+		std::vector<geometry_msgs::Point32> points = box_line;
+		std::vector<sensor_msgs::ChannelFloat32> channels;
+		channels.push_back( channel );
+		sensor_msgs::PointCloud input_msg;
+		sensor_msgs::PointCloud2 output_msg;
+		input_msg.header.frame_id = "velodyne";
+		input_msg.points = points;
+		input_msg.channels = channels;
+		sensor_msgs::convertPointCloudToPointCloud2(input_msg, output_msg);
+		object.pointcloud = output_msg;
+
+		geometry_msgs::PolygonStamped convex_hull_msg;
+		convex_hull_msg.header.frame_id = "velodyne";
+		geometry_msgs::Polygon polygon;
+		polygon.points = createConvexHull(x1, y1, x2, y2, x3, y3, x4, y4);
+		convex_hull_msg.polygon = polygon;
+		object.convex_hull = convex_hull_msg;
+
+		object.header.stamp = nowTime;
+		object.pointcloud.header.stamp = nowTime;
+		object.convex_hull.header.stamp = nowTime;
+		objects.push_back(object);
+	}
+	
+	msg.objects = objects;
+    msg.header.stamp = nowTime;
+    return msg;
+}
+
+projUV ll2xy( string lat, string lon ){
+  projUV ll;
+  ll.u = dmstor(lon.c_str(),0);
+  ll.v = dmstor(lat.c_str(),0);
+  return pj_fwd(ll, p_proj);
+}
+
+void sendBackToRouter(){
+    if(flag != 100){
+        struct sockaddr_in addr;
+        if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(23458);
+		std::cout << "addr:" << router_addr << std::endl;
+        addr.sin_addr.s_addr = inet_addr(router_addr.c_str());
+        connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+        flag = 100;
+    }
+
+    std::stringstream ss;
+	boost::archive::text_oarchive archive(ss);
+	archive << r_message;
+
+	ss.seekg(0, ios::end);
+	if( send( sock_fd, ss.str().c_str(), ss.tellp(), 0 ) < 0 ) {
+			perror( "send" );
+	} else {
+	}
+}
+
+
 
 void createFolder(){
 	char cur_dir[1024];
@@ -41,6 +198,32 @@ void createFolder(){
 	filename = std::string(cur_dir) + "/../output/timestamp_record/timestamp_record_" + timestamp + ".csv";
 	std::cout << "filename:" << filename << std::endl;
 	timestamp_record_file.open(filename, std::ios::out);
+}
+
+void output_file_config(){
+    flag = -1;
+	char cur_dir[1024];
+	getcwd(cur_dir, 1024);
+	time_t t = time(nullptr);
+	const tm* lt = localtime(&t);
+	std::stringstream s;
+	s<<"20";
+	s<<lt->tm_year-100; //100を引くことで20xxのxxの部分になる
+	s<<"-";
+	s<<lt->tm_mon+1; //月を0からカウントしているため
+	s<<"-";
+	s<<lt->tm_mday; //そのまま
+	s<<"_";
+	s<<lt->tm_hour;
+	s<<":";
+	s<<lt->tm_min;
+	s<<":";
+	s<<lt->tm_sec;
+	std::string timestamp = s.str();
+
+	std::string filename = std::string(cur_dir) + "/../delay/" + timestamp + ".csv";
+	std::cout << filename << std::endl;
+	delay_output_file.open(filename, std::ios::out);
 }
 
 void createSocket(std::string router_addr){
@@ -114,6 +297,62 @@ std::string paramOrganize(std::string param){ //libproj setup. param is to speci
 	return params;
 }
 
+void receiveFromRouter(){
+	std::cout << "*****receive setup" << std::endl;
+	int sockfd;
+    int client_sockfd;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof( struct sockaddr_in );
+    struct sockaddr_in from_addr;
+    char buf[4096];
+ 
+    memset( buf, 0, sizeof( buf ) );
+    if( ( sockfd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 ) {
+        perror( "socket" );
+    }
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons( 23457 );
+    addr.sin_addr.s_addr = INADDR_ANY;
+    if( bind( sockfd, (struct sockaddr *)&addr, sizeof( addr ) ) < 0 ) perror( "bind" );
+    if( listen( sockfd, SOMAXCONN ) < 0 ) perror( "listen" );
+    if( ( client_sockfd = accept( sockfd, (struct sockaddr *)&from_addr, &len ) ) < 0 ) perror( "accept" );
+ 
+    // 受信
+    int rsize;
+    while( 1 ) {
+		std::stringstream ss;
+		memset( buf, 0, sizeof( buf ) );
+        rsize = recv( client_sockfd, buf, sizeof( buf ), 0 );
+		ss << buf;
+		
+		boost::archive::text_iarchive archive(ss);
+		archive >> r_message;
+
+		std::cout << "receive from router" << std::endl;
+
+		struct timeval myTime;    // time_t構造体を定義．1970年1月1日からの秒数を格納するもの
+		gettimeofday(&myTime, NULL);
+		long timestamp = myTime.tv_sec * 1000000 + myTime.tv_usec;
+
+		for(int i=0; i<r_message.time.size(); i++){
+			std::cout << "gendeltaTime:" << r_message.time[i] << std::endl;
+		}
+		delay_output_file << timestamp << "," << r_message.timestamp << std::endl;
+
+        sendBackToRouter();
+
+        if ( rsize == 0 ) {
+            break;
+        } else if ( rsize == -1 ) {
+            perror( "recv" );
+        }
+		
+    }
+ 
+    close( client_sockfd );
+    close( sockfd );
+}
+
 void calcEgovehicleState(){
 	double prevTime = prevPose.header.stamp.sec + prevPose.header.stamp.nsec/1000000000.0;
 	double nowTime = nowPose.header.stamp.sec + nowPose.header.stamp.nsec/1000000000.0;
@@ -170,6 +409,7 @@ void timeCalc(){
 void callbackNdtPose(const geometry_msgs::PoseStamped msg){
 	prevPose = nowPose;
 	nowPose = msg;
+	std::cout << "hello" << std::endl;
 	timeCalc();
 	calcEgovehicleState();
 	sendToRouter();	
@@ -309,24 +549,36 @@ void loadOpt(int argc, char* argv[]){
 
 
 int main(int argc,  char* argv[]) {
+	
 	loadOpt(argc, argv);
 	paramOrganize("proj=tmerc lat_0=36 lon_0=139.8333333333333 k=0.9999 x_0=0 y_0=0 ellps=GRS80 units=m");
 
 	if(isSender){
 		mt = std::mt19937(rnd());
-		mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
-		createFolder();
-		createSocket(router_addr);
+		// mThreadReceiveFromRouter = new boost::thread(boost::ref(receiveFromRouterAtSender));
+		// createFolder();
+		// createSocket(router_addr);
+		std::cout << "socket_created" << std::endl;
 		ros::init(argc, argv, "listener");
 		ros::NodeHandle n;
 		ros::Subscriber sub1 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
 		ros::Subscriber sub2 = n.subscribe("detection/lidar_detector/objects", 1024, callbackDetectionObjects);
 		ros::Subscriber sub3 = n.subscribe("tf", 1024, callbackTF);
-		ros::spin();
 	} else {
-			
+		// output_file_config();
+		// mThreadReceive = new boost::thread(boost::ref(receiveFromRouter)); 
+		// ros::init(argc, argv, "sampleCatcher");
+		// ros::NodeHandle n;
+
+		// ros::Subscriber sub2 = n.subscribe("tf", 1024, callbackTF);
+		// ros::Subscriber sub3 = n.subscribe("ndt_pose", 1024, callbackNdtPose);
+		// chatter_pub = n.advertise<autoware_msgs::DetectedObjectArray>("detection/lidar_detector/objects", 10);
+
+		// box_line = createLine();
+		// channel = createChannel("rgb");
 	}
-    
+	ros::spin();    
+	
 	return 0;
 }
 
