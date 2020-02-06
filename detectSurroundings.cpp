@@ -146,7 +146,7 @@ void sendBackToRouter(){
         struct sockaddr_in addr;
         if( (sock_fd = socket( AF_INET, SOCK_STREAM, 0) ) < 0 ) perror("socket");
         addr.sin_family = AF_INET;
-        addr.sin_port = htons(23458);
+        addr.sin_port = htons(23460);
 		std::cout << "addr:" << router_addr << std::endl;
         addr.sin_addr.s_addr = inet_addr(router_addr.c_str());
         connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
@@ -298,7 +298,7 @@ std::string paramOrganize(std::string param){ //libproj setup. param is to speci
 }
 
 void receiveFromRouter(){
-	std::cout << "*****receive setup" << std::endl;
+	std::cout << "*****receive setup at receiver" << std::endl;
 	int sockfd;
     int client_sockfd;
     struct sockaddr_in addr;
@@ -311,7 +311,7 @@ void receiveFromRouter(){
         perror( "socket" );
     }
     addr.sin_family = AF_INET;
-    addr.sin_port = htons( 23457 );
+    addr.sin_port = htons( 23459 );
     addr.sin_addr.s_addr = INADDR_ANY;
     if( bind( sockfd, (struct sockaddr *)&addr, sizeof( addr ) ) < 0 ) perror( "bind" );
     if( listen( sockfd, SOMAXCONN ) < 0 ) perror( "listen" );
