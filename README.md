@@ -8,6 +8,8 @@ AutoC2X is cooperative awareness driving software, extension for Autoware and Op
 
 [Autoware](https://gitlab.com/autowarefoundation/autoware.ai) is open-source autonomous driving software. [OpenC2X](https://www.ccs-labs.org/software/openc2x/) is open-source cooperative ITS software, able to communicate with other vehicles following ITS-G5. AutoC2X is an extension for Autoware and OpenC2X. Using this software, you can get other vehicle information run by Autoware. 
 
+## AutoC2X-OC
+AutoC2X-AW collaborate with [AutoC2X-OC](https://github.com/esakilab/AutoC2X-OC) at router. So you should install and run AutoC2X-OC in router.
 
 ## Requirement
 - autoware (ROS)
