@@ -2,7 +2,17 @@
 
 ![movie](https://user-images.githubusercontent.com/23014935/76400182-39570c00-63c3-11ea-81cb-a6b84179406d.gif)
 
-AutoC2X is cooperative awareness driving software, extension for Autoware and OpenC2X. AutoC2X-AW is extension for Autoware.
+AutoC2X is cooperative awareness driving software, extension for Autoware and OpenC2X. AutoC2X-AW is extension for Autoware. If you find this code useful in your research, please consider citing :
+
+    @inproceedings{Tsukada2020,
+        title = {AutoC2X: Open-source software to realize V2X cooperative perception among autonomous vehicles},
+        author = {Manabu Tsukada and Takaharu Oi and Akihide Ito and Mai Hirata and Hiroshi Esaki},
+        year = {2020},
+        date = {2020-10-04},
+        booktitle = {The 2020 IEEE 92nd Vehicular Technology Conference (VTC2020-Fall)},
+        address = {Victoria, B.C., Canada}
+    }
+
 
 ## Description
 
