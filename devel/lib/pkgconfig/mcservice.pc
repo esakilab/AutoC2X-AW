@@ -1,0 +1,8 @@
+prefix=/home/parallels/AutoC2X-AW/devel
+
+Name: mcservice
+Description: Description of mcservice
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib -lmcservice_msgs
+Requires: mcservice_msgs roscpp rospy std_msgs
