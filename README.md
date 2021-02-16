@@ -16,7 +16,7 @@ AutoC2X is cooperative awareness driving software, extension for Autoware and Op
     @article{Tsukada2020b,
         title = {Networked Roadside Perception Units for Autonomous Driving},
         author = {Manabu Tsukada and Takaharu Oi and Masahiro Kitazawa and Hiroshi Esaki},
-        url = {https://www.mdpi.com/1424-8220/20/18/5320/pdf?.pdf},
+        url = {https://www.mdpi.com/1424-8220/20/18/5320},
         doi = {10.3390/s20185320},
         issn = {1424-8220},
         year = {2020},
