@@ -12,6 +12,20 @@ AutoC2X is cooperative awareness driving software, extension for Autoware and Op
         booktitle = {The 2020 IEEE 92nd Vehicular Technology Conference (VTC2020-Fall)},
         address = {Victoria, B.C., Canada}
     }
+    
+    @article{Tsukada2020b,
+        title = {Networked Roadside Perception Units for Autonomous Driving},
+        author = {Manabu Tsukada and Takaharu Oi and Masahiro Kitazawa and Hiroshi Esaki},
+        url = {https://www.mdpi.com/1424-8220/20/18/5320/pdf?.pdf},
+        doi = {10.3390/s20185320},
+        issn = {1424-8220},
+        year = {2020},
+        date = {2020-09-17},
+        journal = {MDPI Sensors},
+        volume = {20},
+        number = {18}
+    }
+
 
 
 ## Description
